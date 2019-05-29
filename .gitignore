@@ -1,3 +1,7 @@
+
+# Model file ends up too big for github
+*.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

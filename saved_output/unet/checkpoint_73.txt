@@ -1,0 +1,18 @@
+Date: 2018-07-26 18:03:29.859785
+Epoch: 73
+Input channels: 3
+Batch set size: 4
+Training data size: 943
+Train Duration: 34911.4 seconds
+Validation accuracy: 0.9956501458414521
+Validation TN: 73830378
+Validation FP: 176292
+Validation FN: 147856
+Validation TP: 364754
+Validation precision: 0.6741644887865357
+Validation recall: 0.7115623963637073
+Validation f1_score: 0.6923587964193247
+Validation iou: 0.5294715358643174
+Validation true_mean: 0.006878890939364953
+Validation pred_mean: 0.007260483461461248
+Validation loss: 2
