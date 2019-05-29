@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
+import sys
 import warnings
 import csv
 
@@ -33,8 +34,11 @@ import scipy
 
 from unet import UNetGN
 import im_utils
-from metrics import print_metrics_from_dirs
 from sys_utils import multi_process
+# pylint: disable=C0413
+sys.path.append('.')
+from metrics import print_metrics_from_dirs
+
 
 def unet_segment(cnn, image):
     photo_shape = image.shape

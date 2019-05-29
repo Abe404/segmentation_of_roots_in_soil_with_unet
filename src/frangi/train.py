@@ -29,11 +29,11 @@ import numpy as np
 import cma
 from sklearn import metrics
 
-# pylint: disable=C0413
-sys.path.insert(0, '..')
-from data_utils import load_train_data
 from segment import segment_image
 import cmaes_utils
+# pylint: disable=C0413
+sys.path.append('.')
+from data_utils import load_train_data
 
 
 def get_f1_fast(annot, pred) -> float:

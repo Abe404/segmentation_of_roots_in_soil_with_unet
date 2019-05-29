@@ -31,6 +31,8 @@ from checkpointer import CheckPointer
 from unet import UNetGN
 from log import Logger
 from loss import combined_loss
+# pylint: disable=C0413
+sys.path.append('.')
 from metrics import get_metrics, get_metrics_str
 from data_utils import get_files_split
 

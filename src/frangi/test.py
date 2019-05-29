@@ -20,15 +20,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import sys
 import os
 from pathlib import Path
 import numpy as np
 from skimage.io import imread
 import cma
 
-import segment
-import metrics
 import cmaes_utils
+import segment
+# pylint: disable=C0413
+sys.path.append('.')
+import metrics
+
+
 DATA_DIR = Path('../data')
 TEST_ANNOT_DIR = DATA_DIR / 'test' / 'annotations'
 TEST_PHOTO_DIR = DATA_DIR / 'test' / 'photos'
