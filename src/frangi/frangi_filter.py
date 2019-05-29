@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
+import sys
 from skimage import exposure
 from skimage.color import rgb2grey
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals

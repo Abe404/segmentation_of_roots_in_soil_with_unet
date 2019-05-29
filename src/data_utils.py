@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-import warnings
 from multiprocessing import Pool
 
 import numpy as np
