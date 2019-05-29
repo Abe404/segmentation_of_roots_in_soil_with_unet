@@ -27,6 +27,8 @@ from scipy.misc import imsave
 
 from frangi_filter import get_frangi
 from frangi_filter import get_thresholded
+# pylint: disable=C0413
+sys.path.append('.')
 from data_utils import zero_one
 
 

@@ -29,6 +29,9 @@ from im_utils import get_train_tiles_and_masks
 from im_utils import get_val_tiles_and_masks
 import im_utils
 import elastic
+
+# pylint: disable=C0413
+sys.path.append('.')
 from data_utils import load_images_pool
 from data_utils import load_annotations_pool
 

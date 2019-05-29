@@ -207,4 +207,4 @@ def process_test_set(checkpoint_path):
 if __name__ == '__main__':
     CHECKPOINT_PATH = '../saved_output/unet/checkpoint_73.pkl'
     process_test_set(CHECKPOINT_PATH)
-    process_2016_grid_counted(CHECKPOINT_PATH)
+    # process_2016_grid_counted(CHECKPOINT_PATH)

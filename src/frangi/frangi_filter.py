@@ -42,6 +42,9 @@ from skimage import exposure
 from skimage.color import rgb2grey
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 import numpy as np
+
+# pylint: disable=C0413
+sys.path.append('.')
 from data_utils import zero_one
 
 

@@ -21,6 +21,9 @@ import time
 import os
 import glob
 import torch
+
+# pylint: disable=C0413
+sys.path.append('.')
 from metrics import VALID_METRICS
 
 
