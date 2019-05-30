@@ -1,5 +1,7 @@
 Code for the paper "Segmentation of Roots in Soil with U-Net"
 
+https://arxiv.org/abs/1902.11050
+
 
 ## Install dependencies
     > pip install -r requirements.txt
