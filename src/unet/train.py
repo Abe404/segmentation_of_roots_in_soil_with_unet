@@ -114,7 +114,7 @@ def train_unet(outdir):
     cnn = UNetGN()
 
     # To use multiple GPUs
-    cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
+    # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
     cnn.apply(kaiming_conv_init)
     optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
