@@ -57,7 +57,10 @@ def unet_segment(cnn, image):
             tile = rescale_intensity(tile.astype(np.float32), out_range=(0, 1))
             tile -= 0.5
             tile = torch.from_numpy(np.array([tile]))
-            outputs = cnn(tile.cuda())
+            if torch.cuda.is_available():
+                tile = tile.cuda()
+
+            outputs = cnn(tile)
             _, predicted = torch.max(outputs.data, 1)
             softmaxed = softmax(outputs, 1)
             root_probs = softmaxed[:, 1, :]  # just the root probability.
@@ -82,9 +85,13 @@ def segment_dir_with_unet(checkpoint_path, in_dir, out_dir):
 
     file_paths = os.listdir(in_dir)
     cnn = UNetGN()
-    cnn.cuda()
+    use_cuda = False
+    if torch.cuda.is_available():
+        use_cuda = True
+        cnn.cuda()
+    device = torch.device('cuda' if use_cuda else 'cpu')
     print('loading checkpoint', checkpoint_path)
-    cnn.load_state_dict(torch.load(checkpoint_path))
+    cnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
     for i, path in enumerate(file_paths):
         print('segmenting', i + 1, 'out of', len(file_paths))
         test_file = imread(os.path.join(in_dir, path))
