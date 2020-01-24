@@ -1,8 +1,8 @@
 Code for the paper "Segmentation of Roots in Soil with U-Net"
 
-https://arxiv.org/abs/1902.11050
+Data is available from https://zenodo.org/record/3527713
 
-Required data and model file coming soon.
+Trained model is available from https://zenodo.org/record/3484015
 
 ## Install dependencies
     > pip install -r requirements.txt
