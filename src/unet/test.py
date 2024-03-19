@@ -22,16 +22,18 @@ import os
 import sys
 import warnings
 import csv
-
+from PIL import Image
 import numpy as np
+
+
 import torch
+
 from torch.nn.functional import softmax
 from skimage.io import (imread, imsave)
 from skimage.exposure import rescale_intensity
 from skimage.morphology import skeletonize
 from skimage import img_as_float
 import scipy
-
 from unet import UNetGN
 import im_utils
 from sys_utils import multi_process
@@ -96,23 +98,34 @@ def segment_dir_with_unet(checkpoint_path, in_dir, out_dir):
         print('segmenting', i + 1, 'out of', len(file_paths))
         test_file = imread(os.path.join(in_dir, path))
         segmented = unet_segment(cnn, test_file)
+        print('segmented sum', np.sum(segmented), 'unique', np.unique(segmented))
         out_path = os.path.join(out_dir, path)
         print('saving', out_path)
         # catch warnings as low contrast is ok here.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            imsave(out_path, segmented)
+            im = Image.fromarray(segmented * 255)
+            if im.mode != '1':
+                im = im.convert('1')
+                im.save(out_path)
 
 
 def skel_im(in_dir_path, out_dir_path, fname):
     """ skeletonize and save image """
     seg_im = img_as_float(imread(os.path.join(in_dir_path, fname)))
     skel = skeletonize(seg_im)
-    skel = skel.astype(np.int)
+    skel = skel.astype(int)
     skel[skel > 0] = 255
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        imsave(os.path.join(out_dir_path, fname), skel)
+        #imsave(os.path.join(out_dir_path, fname), skel)
+        out_path = os.path.join(out_dir_path, fname)
+        im = Image.fromarray(skel.astype(np.uint8))
+        if im.mode != '1':
+            im = im.convert('1')
+            im.save(out_path)
+
+
 
 
 def pixel_count(skel_dir, fname):
@@ -199,6 +212,19 @@ def process_2016_grid_counted(checkpoint_path):
 
 
 
+def process_train_and_val_set(checkpoint_path):
+    segment_dir_with_unet(
+        checkpoint_path,
+        '../data/train/photos',
+        '../output/unet/train_segmentations'
+    )
+    segment_dir_with_unet(
+        checkpoint_path,
+        '../data/val/photos',
+        '../output/unet/val_segmentations'
+    )
+
+
 def process_test_set(checkpoint_path):
     segment_dir_with_unet(
         checkpoint_path,
@@ -213,5 +239,6 @@ def process_test_set(checkpoint_path):
 
 if __name__ == '__main__':
     CHECKPOINT_PATH = '../saved_output/unet/checkpoint_73.pkl'
-    process_test_set(CHECKPOINT_PATH)
-    # process_2016_grid_counted(CHECKPOINT_PATH)
+    #process_test_set(CHECKPOINT_PATH)
+    process_train_and_val_set(CHECKPOINT_PATH)
+    #process_2016_grid_counted(CHECKPOINT_PATH)
