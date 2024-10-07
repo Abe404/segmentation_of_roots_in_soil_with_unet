@@ -93,7 +93,8 @@ def segment_dir_with_unet(checkpoint_path, in_dir, out_dir):
         cnn.cuda()
     device = torch.device('cuda' if use_cuda else 'cpu')
     print('loading checkpoint', checkpoint_path)
-    cnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
+    cnn.load_state_dict(torch.load(
+        checkpoint_path, map_location=device, weights_only=True))
     for i, path in enumerate(file_paths):
         print('segmenting', i + 1, 'out of', len(file_paths))
         test_file = imread(os.path.join(in_dir, path))
