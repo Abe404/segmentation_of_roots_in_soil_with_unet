@@ -140,8 +140,6 @@ def train_unet(outdir):
         print("Assigning new tiles")
         train_loader.dataset.assign_new_tiles()
         cnn.train()
-        if scheduler:
-            scheduler.step()
         epoch_start = time.time()
 
         all_preds = []
@@ -172,6 +170,8 @@ def train_unet(outdir):
             global_step += 1
 
         duration = time.time() - epoch_start
+        if scheduler:
+            scheduler.step()
 
         print(f"\nTraining: epoch duration: {duration:.1f}")
         loss = loss_sum / len(all_true)
