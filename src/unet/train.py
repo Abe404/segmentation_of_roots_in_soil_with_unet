@@ -62,7 +62,7 @@ def kaiming_conv_init(module):
         torch.nn.init.kaiming_normal_(module.weight.data)
 
 
-def evaluate(cnn, loader):
+def evaluate(cnn, loader, device):
     """ get the
         loss (float)
         predictions (list) (int, 0 or 1)
@@ -79,8 +79,9 @@ def evaluate(cnn, loader):
         for x_batch, y_batch in loader:
 
             # Prepare data for CNN, get loss
-            tensor_y_batch = y_batch.type(torch.LongTensor).cuda()
-            outputs = cnn(x_batch.cuda())
+            tensor_y_batch = y_batch.type(torch.LongTensor).to(
+                device, non_blocking=True)
+            outputs = cnn(x_batch.to(device, non_blocking=True))
             loss = combined_loss(outputs, tensor_y_batch)
             loss_sum += loss.item()
 
@@ -125,7 +126,13 @@ def train_unet(outdir):
                                 train_loader.batch_size,
                                 len(train_loader.dataset))
     logger = Logger(outdir)
-    cnn.cuda()
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    cnn.to(device)
     global_step = 0
 
     for epoch in range(1, epochs + 1):
@@ -142,8 +149,8 @@ def train_unet(outdir):
         loss_sum = 0
 
         for step, (x_batch, y_batch) in enumerate(train_loader):
-            x_batch = x_batch.cuda()
-            y_batch = y_batch.cuda()
+            x_batch = x_batch.to(device, non_blocking=True)
+            y_batch = y_batch.to(device, non_blocking=True)
             # -- forward + backward + optimize --
             optimizer.zero_grad()
             outputs = cnn(x_batch) # each output in outputs is 388x388
@@ -173,7 +180,7 @@ def train_unet(outdir):
         metrics = get_metrics(all_preds, all_true, loss)
         logger.log_metrics('Train', metrics, global_step)
         print('Train', get_metrics_str(metrics))
-        val_loss, val_preds, val_true = evaluate(cnn, val_loader)
+        val_loss, val_preds, val_true = evaluate(cnn, val_loader, device)
         val_metrics = get_metrics(val_preds, val_true, val_loss)
         print('Val', get_metrics_str(val_metrics))
         logger.log_metrics('Val', val_metrics, global_step)

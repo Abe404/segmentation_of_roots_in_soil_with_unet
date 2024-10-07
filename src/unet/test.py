@@ -42,7 +42,7 @@ sys.path.append('.')
 from metrics import print_metrics_from_dirs
 
 
-def unet_segment(cnn, image):
+def unet_segment(cnn, image, device):
     photo_shape = image.shape
     tiles, coords = im_utils.get_tiles(image,
                                        in_tile_shape=(572, 572, 3),
@@ -59,8 +59,8 @@ def unet_segment(cnn, image):
             tile = rescale_intensity(tile.astype(np.float32), out_range=(0, 1))
             tile -= 0.5
             tile = torch.from_numpy(np.array([tile]))
-            if torch.cuda.is_available():
-                tile = tile.cuda()
+            if device.type != "cpu":
+                tile = tile.to(device, non_blocking=True)
 
             outputs = cnn(tile)
             _, predicted = torch.max(outputs.data, 1)
@@ -80,24 +80,27 @@ def unet_segment(cnn, image):
 def segment_dir_with_unet(checkpoint_path, in_dir, out_dir):
     """ segment data from in_dir using u-net """
     print('segment', in_dir, 'to', out_dir)
-    assert os.path.isfile(checkpoint_path), 'checkpoint not found'
+    assert os.path.isfile(checkpoint_path), \
+            f'checkpoint {checkpoint_path}"  not found'
     assert os.path.isdir(in_dir), f'{in_dir} is not a dir'
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
 
     file_paths = os.listdir(in_dir)
     cnn = UNetGN()
-    use_cuda = False
     if torch.cuda.is_available():
-        use_cuda = True
-        cnn.cuda()
-    device = torch.device('cuda' if use_cuda else 'cpu')
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    cnn.to(device)
     print('loading checkpoint', checkpoint_path)
     cnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
     for i, path in enumerate(file_paths):
         print('segmenting', i + 1, 'out of', len(file_paths))
         test_file = imread(os.path.join(in_dir, path))
-        segmented = unet_segment(cnn, test_file)
+        segmented = unet_segment(cnn, test_file, device)
         print('segmented sum', np.sum(segmented), 'unique', np.unique(segmented))
         out_path = os.path.join(out_dir, path)
         print('saving', out_path)
