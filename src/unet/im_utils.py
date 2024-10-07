@@ -46,13 +46,13 @@ def add_salt_pepper(image, intensity):
     if len(image.shape) == 2 or image.shape[-1] == 1:
         white = 1
         black = 0
-    num = np.ceil(intensity * image.size).astype(np.int)
+    num = np.ceil(intensity * image.size).astype(np.int_)
     x_coords = np.floor(np.random.rand(num) * image.shape[1])
-    x_coords = x_coords.astype(np.int)
-    y_coords = np.floor(np.random.rand(num) * image.shape[0]).astype(np.int)
+    x_coords = x_coords.astype(np.int_)
+    y_coords = np.floor(np.random.rand(num) * image.shape[0]).astype(np.int_)
     image[x_coords, y_coords] = white
-    x_coords = np.floor(np.random.rand(num) * image.shape[1]).astype(np.int)
-    y_coords = np.floor(np.random.rand(num) * image.shape[0]).astype(np.int)
+    x_coords = np.floor(np.random.rand(num) * image.shape[1]).astype(np.int_)
+    y_coords = np.floor(np.random.rand(num) * image.shape[0]).astype(np.int_)
     image[y_coords, x_coords] = black
     return image
 
@@ -140,8 +140,8 @@ def get_random_tiles(image, annot, num_tiles, pad_width=92):
     padded_annot = pad(annot, pad_width)
     right_limit = padded_photo.shape[1] - 572
     bottom_limit = padded_photo.shape[0] - 572
-    x_coords = np.round(np.random.rand(num_tiles) * right_limit).astype(np.int)
-    y_coords = np.round(np.random.rand(num_tiles) * bottom_limit).astype(np.int)
+    x_coords = np.round(np.random.rand(num_tiles) * right_limit).astype(np.int_)
+    y_coords = np.round(np.random.rand(num_tiles) * bottom_limit).astype(np.int_)
     tile_coords = list(zip(x_coords, y_coords))
     im_tiles = tiles_from_coords(padded_photo, tile_coords, tile_shape)
     annot_tiles = tiles_from_coords(padded_annot, tile_coords, (572, 572, 1))
