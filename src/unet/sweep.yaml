@@ -11,4 +11,4 @@ parameters:
 
 command:
   - python3.10
-  - deeplabv3/train.py
+  - unet/train.py
