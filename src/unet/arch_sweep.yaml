@@ -25,6 +25,7 @@ parameters:
       - inception_resnet_v2
       - timm-efficientnet-lite4
       - hrnet_w64
+      - mit_b5 # mix visual transformer
   learning_rate:
     value: 0.001  # Fixed learning rate
   epochs:
