@@ -1,0 +1,14 @@
+name: "repeats_AdamW"
+method: grid  # or "random" for random search
+parameters:
+  learning_rate:
+    value: 0.001  # List of learning rates to try
+  epochs:
+    value: 80  # Fixed value for epochs
+  repeats:
+   values: [1, 2, 3] 
+
+
+command:
+  - python3.10
+  - deeplabv3/train.py
