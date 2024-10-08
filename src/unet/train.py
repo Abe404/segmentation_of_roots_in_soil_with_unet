@@ -204,4 +204,11 @@ def train_unet(outdir):
 
         # Log metrics to W&B
         wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
+
+
+    # Finish the W&B run
+    wandb.finish()
+
+
+if __name__ == '__main__':
     train_unet('../output/unet/train_output')
