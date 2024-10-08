@@ -24,6 +24,7 @@ import torch
 from torch.nn.functional import softmax
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
+import wandb  # Import W&B
 
 from datasets import UNetTrainDataset
 from datasets import UNetValDataset
@@ -110,15 +111,20 @@ def evaluate(cnn, loader, device):
 
 
 def train_unet(outdir):
+    # Initialize W&B
+    wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
+
+    # Log hyperparameters
+    config = wandb.config
+
     train_loader, val_loader = get_data_loaders()
-    epochs = 80
     cnn = UNetGN()
 
     # To use multiple GPUs
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
     cnn.apply(kaiming_conv_init)
-    optimizer = torch.optim.AdamW(cnn.parameters(), lr=0.01)
+    optimizer = torch.optim.AdamW(cnn.parameters(), lr=config.learning_rate)
     scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
     checkpointer = CheckPointer(outdir, 'f1_score', 'max',
                                 train_loader.batch_size,
@@ -133,7 +139,7 @@ def train_unet(outdir):
     cnn.to(device)
     global_step = 0
 
-    for epoch in range(1, epochs + 1):
+    for epoch in range(1, config.epochs + 1):
         print("Starting epoch", epoch)
         print("Assigning new tiles")
         train_loader.dataset.assign_new_tiles()
@@ -178,12 +184,24 @@ def train_unet(outdir):
         metrics = get_metrics(all_preds, all_true, loss)
         logger.log_metrics('Train', metrics, global_step)
         print('Train', get_metrics_str(metrics))
+        train_metrics_log = {f"train_{key}": value for key, value in metrics.items()}
+        train_metrics_log["epoch"] = epoch
+        train_metrics_log["train_loss"] = loss
+        train_metrics_log["epoch_duration_s"] = duration
+        wandb.log(train_metrics_log)
+
         val_loss, val_preds, val_true = evaluate(cnn, val_loader, device)
         val_metrics = get_metrics(val_preds, val_true, val_loss)
         print('Val', get_metrics_str(val_metrics))
         logger.log_metrics('Val', val_metrics, global_step)
         checkpointer.maybe_save(cnn, val_metrics, epoch)
+        
+        # Log validation metrics to W&B
+        val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
+        val_metrics_log["epoch"] = epoch
+        val_metrics_log["val_loss"] = val_loss
+        wandb.log(val_metrics_log)
 
-
-if __name__ == '__main__':
+        # Log metrics to W&B
+        wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
     train_unet('../output/unet/train_output')
