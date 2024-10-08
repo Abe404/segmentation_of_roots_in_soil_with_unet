@@ -118,9 +118,7 @@ def train_unet(outdir):
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
     cnn.apply(kaiming_conv_init)
-    optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
-                                momentum=0.99, nesterov=True,
-                                weight_decay=0.00001)
+    optimizer = torch.optim.AdamW(cnn.parameters(), lr=0.01)
     scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
     checkpointer = CheckPointer(outdir, 'f1_score', 'max',
                                 train_loader.batch_size,
