@@ -21,4 +21,4 @@ command:
   - -m${model}
   - -e${epochs}
   - -a${learning_rate}
-  - BM
+  - -B -M
