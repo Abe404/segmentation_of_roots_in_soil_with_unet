@@ -106,7 +106,7 @@ def evaluate(cnn, loader, device):
 
 def train(cnn, outdir, config):
     # Initialize W&B
-    wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
+    wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen", name=config.model + '_' + str(config.repeat))
 
     train_loader, val_loader = get_data_loaders()
 
@@ -206,7 +206,6 @@ if __name__ == '__main__':
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
-        wandb.run.name = wandb.config.model + '_' + wandb.config.repeat
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(
