@@ -50,7 +50,7 @@ def get_data_loaders():
     train_set = UNetTrainDataset(train_annotations, train_photos)
     val_set = UNetValDataset(val_annotations, val_photos)
     train_loader = DataLoader(train_set, batch_size=4, shuffle=True,
-                              num_workers=8, drop_last=False, pin_memory=True)
+                              num_workers=8, drop_last=True, pin_memory=True)
     val_loader = DataLoader(val_set, batch_size=8, drop_last=False,
                             pin_memory=True, shuffle=False, num_workers=8)
 
@@ -196,25 +196,48 @@ def train(cnn, outdir, config):
     # Finish the W&B run
     wandb.finish()
 
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description="Train a deep model for image segmentation"
-    )
-    parser.add_argument(
-        "-m", "--model", default="unet", choices=(
-            "unet", "deeplabv3_mobilenet_v3_large", "deeplabv3_resnet101",
-            "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
-            "lraspp_mobilenet_v3_large"))
-    parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
-    parser.add_argument("-o", "--outdir")
-    parser.add_argument("-e", "--epochs", type=int, default=80)
-    parser.add_argument("-B", "--pretrained-backbone", action="store_true")
-    parser.add_argument("-M", "--pretrained-model", action="store_true")
-    args = parser.parse_args()
 
-    if args.outdir is None:
-        args.outdir = f"../output/{args.model}/train_output"
+    if wandb.run is not None:
+        # Wandb is running, load parameters from Wandb config
+        model = wandb.config.model
+        learning_rate = wandb.config.learning_rate
+        epochs = wandb.config.epochs
+        pretrained_backbone = wandb.config.get("pretrained_backbone", False)
+        pretrained_model = wandb.config.get("pretrained_model", False)
+        outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
+    else:
+        # Standalone mode, use command line arguments
+        parser = argparse.ArgumentParser(
+            description="Train a deep model for image segmentation"
+        )
+        parser.add_argument(
+            "-m", "--model", default="unet", choices=(
+                "unet", "deeplabv3_mobilenet_v3_large", "deeplabv3_resnet101",
+                "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
+                "lraspp_mobilenet_v3_large"))
+        parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
+        parser.add_argument("-o", "--outdir")
+        parser.add_argument("-e", "--epochs", type=int, default=80)
+        parser.add_argument("-B", "--pretrained-backbone", action="store_true")
+        parser.add_argument("-M", "--pretrained-model", action="store_true")
+        args = parser.parse_args()
+
+        # Set output directory if not provided
+        if args.outdir is None:
+            args.outdir = f"../output/{args.model}/train_output"
+
+        # Map arguments to variables for consistency
+        model = args.model
+        learning_rate = args.learning_rate
+        epochs = args.epochs
+        pretrained_backbone = args.pretrained_backbone
+        pretrained_model = args.pretrained_model
+        outdir = args.outdir
+
+    # Now use the model and arguments
     train(
-        get_model(args.model, args.pretrained_model, args.pretrained_backbone),
-        args.outdir, args)
+        get_model(model, pretrained_model, pretrained_backbone),
+        outdir,
+        args
+    )
