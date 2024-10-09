@@ -22,7 +22,7 @@ import sys
 
 import numpy as np
 import torch
-from torch.nn.functional import softmax
+from torch.nn.functional import sigmoid
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
 import wandb  # Import W&B
@@ -72,7 +72,6 @@ def evaluate(cnn, loader, device):
     cnn.eval()
     with torch.no_grad():
         for x_batch, y_batch in loader:
-
             # Prepare data for CNN, get loss
             tensor_y_batch = y_batch.type(torch.LongTensor).to(
                 device, non_blocking=True)
@@ -82,8 +81,7 @@ def evaluate(cnn, loader, device):
 
             # store predictions and ground truth for metrics
             _, predicted = torch.max(outputs.data, 1)
-            softmaxed = softmax(outputs, 1)
-            root_probs = softmaxed[:, 1, :]  # just the root probability.
+            root_probs = sigmoid(outputs).squeeze(1)
 
             # thresholded segmentation
             predicted = (root_probs > 0.5).view(-1).int()
@@ -144,8 +142,7 @@ def train(cnn, outdir, learning_rate, epochs):
             # -- forward + backward + optimize --
             optimizer.zero_grad()
             outputs = cnn(x_batch) # each output in outputs is 388x388
-            softmaxed = softmax(outputs, 1)
-            root_probs = softmaxed[:, 1, :]  # just the root probability.
+            root_probs = sigmoid(outputs).squeeze(1)
             predicted = root_probs > 0.5
             loss = combined_loss(outputs, y_batch)
             loss.backward()
