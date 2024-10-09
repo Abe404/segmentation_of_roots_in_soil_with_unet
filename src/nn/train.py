@@ -104,16 +104,15 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def train(cnn, outdir, config, name):
+def train(cnn, outdir, learning_rate, epochs):
     # Initialize W&B
-    wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen", name=name)
 
     train_loader, val_loader = get_data_loaders()
 
     # To use multiple GPUs
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
-    optimizer = torch.optim.AdamW(cnn.parameters(), lr=config.learning_rate)
+    optimizer = torch.optim.AdamW(cnn.parameters(), lr=learning_rate)
     scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
     checkpointer = CheckPointer(outdir, 'f1_score', 'max',
                                 train_loader.batch_size,
@@ -128,7 +127,7 @@ def train(cnn, outdir, config, name):
     cnn.to(device)
     global_step = 0
 
-    for epoch in range(1, config.epochs + 1):
+    for epoch in range(1, epochs + 1):
         print("Starting epoch", epoch)
         print("Assigning new tiles")
         train_loader.dataset.assign_new_tiles()
@@ -197,8 +196,10 @@ def train(cnn, outdir, config, name):
     wandb.finish()
 
 if __name__ == '__main__':
-    name = 'run_'
+    wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
+
     if wandb.run is not None:
+        wandb.run.name = 'run_' + str(wandb.config.model) + '_' + str(wandb.config.repeats)
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         learning_rate = wandb.config.learning_rate
@@ -206,14 +207,13 @@ if __name__ == '__main__':
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
-        name += model + '_' + str(wandb.config.repeat)
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(
             description="Train a deep model for image segmentation"
         )
         parser.add_argument(
-            "-m", "--model", default="unet", choices=(
+            "-m", "--model", choices=(
                 "unet", "deeplabv3_mobilenet_v3_large", "deeplabv3_resnet101",
                 "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
                 "lraspp_mobilenet_v3_large"))
@@ -239,7 +239,5 @@ if __name__ == '__main__':
     # Now use the model and arguments
     train(
         get_model(model, pretrained_model, pretrained_backbone),
-        outdir,
-        args,
-        name
+        outdir, learning_rate, epochs
     )
