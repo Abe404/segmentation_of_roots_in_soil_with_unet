@@ -28,7 +28,7 @@ import numpy as np
 
 import torch
 
-from torch.nn.functional import softmax
+from torch.nn.functional import sigmoid
 from skimage.io import (imread, imsave)
 from skimage.exposure import rescale_intensity
 from skimage.morphology import skeletonize
@@ -64,8 +64,7 @@ def unet_segment(cnn, image, device):
 
             outputs = cnn(tile)
             _, predicted = torch.max(outputs.data, 1)
-            softmaxed = softmax(outputs, 1)
-            root_probs = softmaxed[:, 1, :]  # just the root probability.
+            root_probs = sigmoid(outputs).squeeze(1)
             predicted = root_probs > 0.5
             predicted = predicted.view(-1).int()
             pred_np = predicted.data.cpu().numpy()

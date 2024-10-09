@@ -16,14 +16,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import torch
-from torch.nn.functional import softmax
-from torch.nn.functional import cross_entropy
+from torch.nn.functional import sigmoid
+from torch.nn.functional import binary_cross_entropy_with_logits
 
 
 def dice_loss(predictions, labels):
     """ based on loss function from V-Net paper """
-    softmaxed = softmax(predictions, 1)
-    predictions = softmaxed[:, 1, :]  # just the root probability.
+    predictions = sigmoid(predictions).squeeze(1)
     labels = labels.float()
     preds = predictions.contiguous().view(-1)
     labels = labels.view(-1)
@@ -34,9 +33,10 @@ def dice_loss(predictions, labels):
 
 def combined_loss(predictions, labels):
     """ mix of dice and cross entropy """
+    ce = 0.3 * binary_cross_entropy_with_logits(predictions.squeeze(1),
+                                                labels.to(torch.float32))
     if torch.sum(labels) > 0:
-        return (dice_loss(predictions, labels) +
-                (0.3 * cross_entropy(predictions, labels)))
-    # When no roots use only cross entropy
-    # as dice is undefined.
-    return 0.3 * cross_entropy(predictions, labels)
+        return dice_loss(predictions, labels) + ce
+    else:
+        # When no roots use only cross entropy as dice is undefined.
+        return ce

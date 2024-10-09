@@ -180,9 +180,7 @@ class UNetGN(nn.Module):
         self.up4 = UpBlock(128)
         # output is now at 64x388x388
         self.conv_out = nn.Sequential(
-            nn.Conv2d(64, 2, kernel_size=1, padding=0),
-            nn.ReLU(),
-            nn.GroupNorm(2, 2)
+            nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
         # output is now at 2x388x388
         # each layer in the output represents a class 'probability'
@@ -216,7 +214,7 @@ class UNetGN(nn.Module):
 
 
 class TorchvisionShim(torch.nn.Module):
-    """Replace the classifier head with a fresh one with 2 classes, get the
+    """Replace the classifier head with a fresh one with 1 class, get the
     "out" key in forward, crop to 388x388.
     """
     def __init__(self, model):
@@ -224,10 +222,10 @@ class TorchvisionShim(torch.nn.Module):
         self.model = model
         clfcls = model.classifier.__class__
         if clfcls.__name__ == 'LRASPPHead':
-            self.model.classifier = clfcls(40, 128, 960, 2)
+            self.model.classifier = clfcls(40, 128, 960, 1)
         else:
             in_channels = next(model.classifier.parameters()).size(1)
-            self.model.classifier = clfcls(in_channels, 2)
+            self.model.classifier = clfcls(in_channels, 1)
 
     def forward(self, *args, **kwargs):
         out = self.model.forward(*args, **kwargs)["out"]

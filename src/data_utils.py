@@ -28,7 +28,7 @@ from skimage.io import imread
 def load_annotations_pool(annotation_paths):
     print(f'Loading {len(annotation_paths)} annotations using Pool')
     with Pool(cpu_count()) as pool:
-        annot_list = pool.map(imread, annotation_paths)
+        annot_list = pool.map(imread, annotation_paths[:2])
     annot_list = [a.astype(bool).astype(np.float32) for a in annot_list]
     desired_shape = annot_list[0].shape + (1,) # add channel dimension
     annot_list = [a.reshape(desired_shape) for a in annot_list]
@@ -38,7 +38,7 @@ def load_annotations_pool(annotation_paths):
 def load_images_pool(photo_paths):
     print(f'Loading {len(photo_paths)} photos using Pool')
     with Pool(len(photo_paths)) as pool:
-        photo_list = pool.map(imread, photo_paths)
+        photo_list = pool.map(imread, photo_paths[:2])
     return np.array(photo_list)
 
 
