@@ -216,16 +216,22 @@ class UNetGN(nn.Module):
 
 
 class TorchvisionShim(torch.nn.Module):
-    """Get the "out" key in forward, crop to 388x388, and keep the first two
-    classes.
+    """Replace the classifier head with a fresh one with 2 classes, get the
+    "out" key in forward, crop to 388x388.
     """
     def __init__(self, model):
         super().__init__()
         self.model = model
+        clfcls = model.classifier.__class__
+        if clfcls.__name__ == 'LRASPPHead':
+            self.model.classifier = clfcls(40, 128, 960, 2)
+        else:
+            in_channels = next(model.classifier.parameters()).size(1)
+            self.model.classifier = clfcls(in_channels, 2)
 
     def forward(self, *args, **kwargs):
         out = self.model.forward(*args, **kwargs)["out"]
-        return crop_tensor(out[:, :2], (None, None, 388, 388))
+        return crop_tensor(out, (None, None, 388, 388))
 
 
 def get_model(name, pretrained_model, pretrained_backbone):
