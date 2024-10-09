@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import argparse
+from functools import partial
 import time
 import sys
 
@@ -29,7 +31,7 @@ import wandb  # Import W&B
 from datasets import UNetTrainDataset
 from datasets import UNetValDataset
 from checkpointer import CheckPointer
-from unet import UNetGN
+from models import get_model
 from log import Logger
 from loss import combined_loss
 # pylint: disable=C0413
@@ -54,13 +56,6 @@ def get_data_loaders():
                             pin_memory=True, shuffle=False, num_workers=8)
 
     return train_loader, val_loader
-
-
-def kaiming_conv_init(module):
-    is_conv = isinstance(module, torch.nn.Conv2d)
-    is_conv_transpose = isinstance(module, torch.nn.ConvTranspose2d)
-    if is_conv or is_conv_transpose:
-        torch.nn.init.kaiming_normal_(module.weight.data)
 
 
 def evaluate(cnn, loader, device):
@@ -110,20 +105,24 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def train_unet(outdir):
+def wbmain(outdir):
     # Initialize W&B
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
     # Log hyperparameters
     config = wandb.config
+    return train(get_model(config.model, config.pretrained_model, config.pretrained_backbone),
+                 outdir, config, wandb)
 
+
+
+
+def train(cnn, outdir, config, wandb=None):
     train_loader, val_loader = get_data_loaders()
-    cnn = UNetGN()
 
     # To use multiple GPUs
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
-    cnn.apply(kaiming_conv_init)
     optimizer = torch.optim.AdamW(cnn.parameters(), lr=config.learning_rate)
     scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
     checkpointer = CheckPointer(outdir, 'f1_score', 'max',
@@ -184,11 +183,12 @@ def train_unet(outdir):
         metrics = get_metrics(all_preds, all_true, loss)
         logger.log_metrics('Train', metrics, global_step)
         print('Train', get_metrics_str(metrics))
-        train_metrics_log = {f"train_{key}": value for key, value in metrics.items()}
-        train_metrics_log["epoch"] = epoch
-        train_metrics_log["train_loss"] = loss
-        train_metrics_log["epoch_duration_s"] = duration
-        wandb.log(train_metrics_log)
+        if wandb is not None:
+            train_metrics_log = {f"train_{key}": value for key, value in metrics.items()}
+            train_metrics_log["epoch"] = epoch
+            train_metrics_log["train_loss"] = loss
+            train_metrics_log["epoch_duration_s"] = duration
+            wandb.log(train_metrics_log)
 
         val_loss, val_preds, val_true = evaluate(cnn, val_loader, device)
         val_metrics = get_metrics(val_preds, val_true, val_loss)
@@ -196,19 +196,38 @@ def train_unet(outdir):
         logger.log_metrics('Val', val_metrics, global_step)
         checkpointer.maybe_save(cnn, val_metrics, epoch)
         
-        # Log validation metrics to W&B
-        val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
-        val_metrics_log["epoch"] = epoch
-        val_metrics_log["val_loss"] = val_loss
-        wandb.log(val_metrics_log)
+        if wandb is not None:
+            # Log validation metrics to W&B
+            val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
+            val_metrics_log["epoch"] = epoch
+            val_metrics_log["val_loss"] = val_loss
+            wandb.log(val_metrics_log)
+            # Log metrics to W&B
+            wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
 
-        # Log metrics to W&B
-        wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
 
-
-    # Finish the W&B run
-    wandb.finish()
+    if wandb is not None:
+        # Finish the W&B run
+        wandb.finish()
 
 
 if __name__ == '__main__':
-    train_unet('../output/unet/train_output')
+    parser = argparse.ArgumentParser(
+        description="Train a deep model for image segmentation"
+    )
+    parser.add_argument(
+        "-m", "--model", default="unet", choices=(
+            "unet", "deeplabv3_mobilenet_v3_large", "deeplabv3_resnet101",
+            "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
+            "lraspp_mobilenet_v3_large"))
+    parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
+    parser.add_argument( "-o", "--outdir")
+    parser.add_argument("-e", "--epochs", type=int, default=80)
+    parser.add_argument("-B", "--pretrained-backbone", action="store_true")
+    parser.add_argument("-M", "--pretrained-model", action="store_true")
+    args = parser.parse_args()
+
+    if args.outdir is None:
+        args.outdir = f"../output/{args.model}/train_output"
+    train(get_model(args.model, args.pretrained_model, args.pretrained_backbone),
+          args.outdir, args)

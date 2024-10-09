@@ -24,6 +24,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import torch.nn as nn
 import torch
+from torchvision import models
+
+
+pretrained_weights = {
+    "deeplabv3_mobilenet_v3_large":
+        models.segmentation.DeepLabV3_MobileNet_V3_Large_Weights.COCO_WITH_VOC_LABELS_V1,
+    "deeplabv3_resnet101":
+        models.segmentation.DeepLabV3_ResNet101_Weights.COCO_WITH_VOC_LABELS_V1,
+    "deeplabv3_resnet50":
+        models.segmentation.DeepLabV3_ResNet50_Weights.COCO_WITH_VOC_LABELS_V1,
+    "fcn_resnet101":
+        models.segmentation.FCN_ResNet101_Weights.COCO_WITH_VOC_LABELS_V1,
+    "fcn_resnet50":
+        models.segmentation.FCN_ResNet50_Weights.COCO_WITH_VOC_LABELS_V1,
+    "lraspp_mobilenet_v3_large":
+        models.segmentation.LRASPP_MobileNet_V3_Large_Weights.COCO_WITH_VOC_LABELS_V1,
+    "mobilenet_v3_large":
+        models.MobileNet_V3_Large_Weights.IMAGENET1K_V2,
+    "resnet50":
+        models.ResNet50_Weights.IMAGENET1K_V2,
+    "resnet101":
+        models.ResNet101_Weights.IMAGENET1K_V2
+}
 
 
 class DownBlock(nn.Module):
@@ -50,9 +73,9 @@ class DownBlock(nn.Module):
 
 
 def crop_tensor(tensor, target):
-    """ Crop tensor to target size """
+    """ Crop tensor to target size"""
     _, _, tensor_height, tensor_width = tensor.size()
-    _, _, crop_height, crop_width = target.size()
+    _, _, crop_height, crop_width = target
     left = (tensor_width - crop_height) // 2
     top = (tensor_height - crop_width) // 2
     right = left + crop_width
@@ -92,7 +115,7 @@ class UpBlock(nn.Module):
 
     def forward(self, x, down_out):
         out = self.conv1(x)
-        cropped = crop_tensor(down_out, out)
+        cropped = crop_tensor(down_out, out.size())
         out = torch.cat([cropped, out], dim=1)
         out = self.conv2(out)
         out = self.conv3(out)
@@ -190,3 +213,34 @@ class UNetGN(nn.Module):
         # but these aren't really probabilities as the model is not
         # calibrated.
         return out
+
+
+class TorchvisionShim(torch.nn.Module):
+    """Get the "out" key in forward, crop to 388x388, and keep the first two classes"""
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, *args, **kwargs):
+        out = self.model.forward(*args, **kwargs)["out"]
+        return crop_tensor(out[:, :2], (None, None, 388, 388))
+
+
+def get_model(name, pretrained_model, pretrained_backbone):
+    if name == "unet":
+        return UnetGN()
+    else:
+        if pretrained_backbone:
+            weights_backbone = pretrained_weights[name.split("_", maxsplit=1)[1]]
+        else:
+            weights_backbone = None
+
+        if pretrained_model:
+            assert weights_backbone is not None
+            weights = pretrained_weights[name]
+        else:
+            weights = None
+
+        model_cls = getattr(models.segmentation, name)
+        return TorchvisionShim(
+            model_cls(weights=weights, weights_backbone=weights_backbone))
