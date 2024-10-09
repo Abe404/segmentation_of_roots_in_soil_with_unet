@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 import numpy as np
 from skimage.io import imread
@@ -27,7 +27,7 @@ from skimage.io import imread
 
 def load_annotations_pool(annotation_paths):
     print(f'Loading {len(annotation_paths)} annotations using Pool')
-    with Pool(len(annotation_paths)) as pool:
+    with Pool(cpu_count()) as pool:
         annot_list = pool.map(imread, annotation_paths)
     annot_list = [a.astype(bool).astype(np.float32) for a in annot_list]
     desired_shape = annot_list[0].shape + (1,) # add channel dimension
