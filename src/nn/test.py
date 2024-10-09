@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
+import argparse
 import os
 import sys
 import warnings
@@ -215,34 +215,27 @@ def process_2016_grid_counted(checkpoint_path):
     print_correlations(cnn_skel_lens, manual_ris)
 
 
-
-def process_train_and_val_set(checkpoint_path):
+def segment_and_eval(subset, checkpoint_path):
     segment_dir_with_unet(
         checkpoint_path,
-        '../data/train/photos',
-        '../output/unet/train_segmentations'
-    )
-    segment_dir_with_unet(
-        checkpoint_path,
-        '../data/val/photos',
-        '../output/unet/val_segmentations'
-    )
-
-
-def process_test_set(checkpoint_path):
-    segment_dir_with_unet(
-        checkpoint_path,
-        '../data/test/photos',
-        '../output/unet/test_output/test_segmentations'
+        f'../data/{subset}/photos',
+        f'../output/unet/{subset}_output/{subset}_segmentations'
     )
     print_metrics_from_dirs(
-        '../data/test/annotations',
-        '../output/unet/test_output/test_segmentations'
+        f'../data/{subset}/annotations',
+        f'../output/unet/{subset}_output/{subset}_segmentations'
     )
 
 
 if __name__ == '__main__':
-    CHECKPOINT_PATH = '../saved_output/unet/checkpoint_73.pkl'
-    #process_test_set(CHECKPOINT_PATH)
-    process_train_and_val_set(CHECKPOINT_PATH)
-    #process_2016_grid_counted(CHECKPOINT_PATH)
+    parser = argparse.ArgumentParser(
+        description="Predict and Evaluate using a model checkpoint")
+    parser.add_argument(
+        "-c", "--checkpoint",
+        default="../saved_output/unet/checkpoint_73.pkl"
+    )
+    parser.add_argument("-s", "--subsets", nargs="+",
+                        help="One or more of train, val, test")
+    args = parser.parse_args()
+    for subset in args.subsets:
+        segment_and_eval(subset, args.checkpoint)
