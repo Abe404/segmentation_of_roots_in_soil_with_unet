@@ -73,7 +73,7 @@ class DownBlock(nn.Module):
 
 
 def crop_tensor(tensor, target):
-    """ Crop tensor to target size"""
+    """ Crop tensor to target size """
     _, _, tensor_height, tensor_width = tensor.size()
     _, _, crop_height, crop_width = target
     left = (tensor_width - crop_height) // 2
@@ -216,7 +216,9 @@ class UNetGN(nn.Module):
 
 
 class TorchvisionShim(torch.nn.Module):
-    """Get the "out" key in forward, crop to 388x388, and keep the first two classes"""
+    """Get the "out" key in forward, crop to 388x388, and keep the first two
+    classes.
+    """
     def __init__(self, model):
         super().__init__()
         self.model = model
@@ -228,10 +230,11 @@ class TorchvisionShim(torch.nn.Module):
 
 def get_model(name, pretrained_model, pretrained_backbone):
     if name == "unet":
-        return UnetGN()
+        return UNetGN()
     else:
         if pretrained_backbone:
-            weights_backbone = pretrained_weights[name.split("_", maxsplit=1)[1]]
+            weights_backbone = \
+                pretrained_weights[name.split("_", maxsplit=1)[1]]
         else:
             weights_backbone = None
 

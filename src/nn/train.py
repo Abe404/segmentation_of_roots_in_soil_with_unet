@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import argparse
-from functools import partial
 import time
 import sys
 
@@ -115,8 +114,6 @@ def wbmain(outdir):
                  outdir, config, wandb)
 
 
-
-
 def train(cnn, outdir, config, wandb=None):
     train_loader, val_loader = get_data_loaders()
 
@@ -195,7 +192,7 @@ def train(cnn, outdir, config, wandb=None):
         print('Val', get_metrics_str(val_metrics))
         logger.log_metrics('Val', val_metrics, global_step)
         checkpointer.maybe_save(cnn, val_metrics, epoch)
-        
+
         if wandb is not None:
             # Log validation metrics to W&B
             val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
@@ -204,7 +201,6 @@ def train(cnn, outdir, config, wandb=None):
             wandb.log(val_metrics_log)
             # Log metrics to W&B
             wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
-
 
     if wandb is not None:
         # Finish the W&B run
@@ -221,7 +217,7 @@ if __name__ == '__main__':
             "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
             "lraspp_mobilenet_v3_large"))
     parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
-    parser.add_argument( "-o", "--outdir")
+    parser.add_argument("-o", "--outdir")
     parser.add_argument("-e", "--epochs", type=int, default=80)
     parser.add_argument("-B", "--pretrained-backbone", action="store_true")
     parser.add_argument("-M", "--pretrained-model", action="store_true")
