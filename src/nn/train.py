@@ -206,6 +206,7 @@ if __name__ == '__main__':
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
+        wandb.run.name = wandb.config.model + '_' + wandb.config.repeat
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(
