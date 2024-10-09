@@ -1,33 +1,15 @@
-name: "sweep_segmentation_architectures_encoders"
+name: "sweep_torchvision_segmentation_models"
 method: grid  # or "random" for random search
 parameters:
-  architecture:
-    values:
-      - Unet
-      - Unet++
-      - MAnet
-      - Linknet
-      - FPN
-      - PSPNet
-      - PAN
-      - DeepLabV3
-      - DeepLabV3+
-      - UPerNet
-  encoder_name:
-    values:
-      - efficientnet-b7 
-      - resnet152
-      - densenet201
-      - mobilenet_v3_large
-      - inception_v4
-      - resnext50_32x4d
-      - seresnet50
-      - inception_resnet_v2
-      - timm-efficientnet-lite4
-      - hrnet_w64
-      - mit_b5 # mix visual transformer
+  model:
+    - deeplabv3_mobilenet_v3_large
+    - deeplabv3_resnet101
+    - deeplabv3_resnet50
+    - fcn_resnet101
+    - fcn_resnet50
+    - lraspp_mobilenet_v3_large
   learning_rate:
-    value: 0.001  # Fixed learning rate
+    value: 0.01  # Fixed learning rate
   epochs:
     value: 80  # Fixed number of epochs
   repeats:
@@ -35,5 +17,8 @@ parameters:
 
 command:
   - python3.10
-  - segmentation/train.py
-
+  - nn/train.py
+  - -m${model}
+  - -e${epochs}
+  - -a${learning_rate}
+  - BM

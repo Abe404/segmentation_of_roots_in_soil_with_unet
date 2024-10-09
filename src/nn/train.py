@@ -104,17 +104,10 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def wbmain(outdir):
+def train(cnn, outdir, config):
     # Initialize W&B
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
-    # Log hyperparameters
-    config = wandb.config
-    return train(get_model(config.model, config.pretrained_model, config.pretrained_backbone),
-                 outdir, config, wandb)
-
-
-def train(cnn, outdir, config, wandb=None):
     train_loader, val_loader = get_data_loaders()
 
     # To use multiple GPUs
@@ -180,12 +173,11 @@ def train(cnn, outdir, config, wandb=None):
         metrics = get_metrics(all_preds, all_true, loss)
         logger.log_metrics('Train', metrics, global_step)
         print('Train', get_metrics_str(metrics))
-        if wandb is not None:
-            train_metrics_log = {f"train_{key}": value for key, value in metrics.items()}
-            train_metrics_log["epoch"] = epoch
-            train_metrics_log["train_loss"] = loss
-            train_metrics_log["epoch_duration_s"] = duration
-            wandb.log(train_metrics_log)
+        train_metrics_log = {f"train_{key}": value for key, value in metrics.items()}
+        train_metrics_log["epoch"] = epoch
+        train_metrics_log["train_loss"] = loss
+        train_metrics_log["epoch_duration_s"] = duration
+        wandb.log(train_metrics_log)
 
         val_loss, val_preds, val_true = evaluate(cnn, val_loader, device)
         val_metrics = get_metrics(val_preds, val_true, val_loss)
@@ -193,18 +185,16 @@ def train(cnn, outdir, config, wandb=None):
         logger.log_metrics('Val', val_metrics, global_step)
         checkpointer.maybe_save(cnn, val_metrics, epoch)
 
-        if wandb is not None:
-            # Log validation metrics to W&B
-            val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
-            val_metrics_log["epoch"] = epoch
-            val_metrics_log["val_loss"] = val_loss
-            wandb.log(val_metrics_log)
-            # Log metrics to W&B
-            wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
+        # Log validation metrics to W&B
+        val_metrics_log = {f"val_{key}": value for key, value in val_metrics.items()}
+        val_metrics_log["epoch"] = epoch
+        val_metrics_log["val_loss"] = val_loss
+        wandb.log(val_metrics_log)
+        # Log metrics to W&B
+        wandb.log({"epoch": epoch, "train_loss": loss, "val_loss": val_loss})
 
-    if wandb is not None:
-        # Finish the W&B run
-        wandb.finish()
+    # Finish the W&B run
+    wandb.finish()
 
 
 if __name__ == '__main__':
@@ -225,5 +215,6 @@ if __name__ == '__main__':
 
     if args.outdir is None:
         args.outdir = f"../output/{args.model}/train_output"
-    train(get_model(args.model, args.pretrained_model, args.pretrained_backbone),
-          args.outdir, args)
+    train(
+        get_model(args.model, args.pretrained_model, args.pretrained_backbone),
+        args.outdir, args)
