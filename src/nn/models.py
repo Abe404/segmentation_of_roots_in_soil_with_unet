@@ -224,7 +224,7 @@ class TorchvisionShim(torch.nn.Module):
         self.model = model
         clfcls = model.classifier.__class__
         if clfcls.__name__ == 'LRASPPHead':
-            self.model.classifier = clfcls(40, 128, 960, 2)
+            self.model.classifier = clfcls(40, 960, 2, 128)
         else:
             in_channels = next(model.classifier.parameters()).size(1)
             self.model.classifier = clfcls(in_channels, 2)
