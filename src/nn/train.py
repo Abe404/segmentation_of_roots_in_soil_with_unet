@@ -39,7 +39,7 @@ from metrics import get_metrics, get_metrics_str
 from data_utils import get_files_split
 
 
-def get_data_loaders():
+def get_data_loaders(batch_size):
     """
     Load the train and validation photo and annotation paths.
     Return PyTorch data loaders which can be used for training and validating a neural network.
@@ -49,7 +49,7 @@ def get_data_loaders():
     val_photos, train_photos, val_annotations, train_annotations = files
     train_set = UNetTrainDataset(train_annotations, train_photos)
     val_set = UNetValDataset(val_annotations, val_photos)
-    train_loader = DataLoader(train_set, batch_size=4, shuffle=True,
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
                               num_workers=8, drop_last=True, pin_memory=True)
     val_loader = DataLoader(val_set, batch_size=8, drop_last=False,
                             pin_memory=True, shuffle=False, num_workers=8)
@@ -104,10 +104,10 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def train(cnn, outdir, learning_rate, epochs):
+def train(cnn, outdir, learning_rate, epochs, batch_size):
     # Initialize W&B
 
-    train_loader, val_loader = get_data_loaders()
+    train_loader, val_loader = get_data_loaders(batch_size)
 
     # To use multiple GPUs
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
@@ -204,6 +204,7 @@ if __name__ == '__main__':
         model = wandb.config.model
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
+        batch_size = wandb.config.batch_size
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
@@ -239,5 +240,5 @@ if __name__ == '__main__':
     # Now use the model and arguments
     train(
         get_model(model, pretrained_model, pretrained_backbone),
-        outdir, learning_rate, epochs
+        outdir, learning_rate, epochs, batch_size
     )
