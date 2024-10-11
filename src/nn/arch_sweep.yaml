@@ -9,6 +9,7 @@ parameters:
       - fcn_resnet101
       - fcn_resnet50
       - lraspp_mobilenet_v3_large
+      - unet
   learning_rate:
     value: 0.001  # Fixed learning rate
   epochs:
