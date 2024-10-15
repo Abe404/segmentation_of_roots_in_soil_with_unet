@@ -1,0 +1,19 @@
+name: "sweep_no_schedule"
+method: grid
+parameters:
+  model:
+    values:
+      - deeplabv3_resnet50
+      - unet
+  learning_rate:
+    value: 0.001
+  schedule:
+    value: False
+  epochs:
+    value: 80  # Fixed number of epochs
+  batch_size:
+    value: 4
+
+command:
+  - python3.10
+  - nn/train.py

@@ -1,0 +1,18 @@
+name: "repeats_mask2former"
+method: grid  # or "random" for random search
+parameters:
+  model:
+    values:
+      - mask2former
+  learning_rate:
+    value: 0.001  # List of learning rates to try
+  batch_size:
+    value: 1  
+  epochs:
+    value: 80  # Fixed value for epochs
+  repeats:
+   values: [1, 2, 3] 
+
+command:
+  - python3.10
+  - nn/train.py

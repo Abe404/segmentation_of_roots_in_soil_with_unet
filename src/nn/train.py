@@ -104,7 +104,7 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def train(cnn, outdir, learning_rate, epochs, batch_size):
+def train(cnn, outdir, learning_rate, epochs, batch_size, schedule):
     # Initialize W&B
 
     train_loader, val_loader = get_data_loaders(batch_size)
@@ -113,7 +113,12 @@ def train(cnn, outdir, learning_rate, epochs, batch_size):
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
     optimizer = torch.optim.AdamW(cnn.parameters(), lr=learning_rate)
-    scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
+
+    if schedule:
+        scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
+    else:
+        scheduler = None
+
     checkpointer = CheckPointer(outdir, 'f1_score', 'max',
                                 train_loader.batch_size,
                                 len(train_loader.dataset))
@@ -199,15 +204,22 @@ if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
     if wandb.run is not None:
-        wandb.run.name = str(wandb.config.model) + '_pre_' + str(wandb.config.pretrained_model) + '_bs_' + str(wandb.config.batch_size) + '_lr_' + str(wandb.config.learning_rate) + '_rep_' + str(wandb.config.repeats)
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size
+        schedule = wandb.config.schedule
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
+
+        wandb.run.name = (str(wandb.config.model) + 
+                        '_pre_' + str(pretrained_model) + 
+                        '_bs_' + str(wandb.config.batch_size) + 
+                        '_lr_' + str(wandb.config.learning_rate) + 
+                        '_schedule_' + str(schedule) + 
+                        '_rep_' + str(wandb.config.repeats))
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(
@@ -240,5 +252,5 @@ if __name__ == '__main__':
     # Now use the model and arguments
     train(
         get_model(model, pretrained_model, pretrained_backbone),
-        outdir, learning_rate, epochs, batch_size
+        outdir, learning_rate, epochs, batch_size, schedule
     )
