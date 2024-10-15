@@ -199,7 +199,6 @@ if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
     if wandb.run is not None:
-        wandb.run.name = 'batch_sweep_' + str(wandb.config.model) + '_bs_' + str(wandb.config.batch_size) + '_lr_' + str(wandb.config.learning_rate)
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         learning_rate = wandb.config.learning_rate
@@ -208,6 +207,8 @@ if __name__ == '__main__':
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
+
+        wandb.run.name = str(wandb.config.model) + '_pre_' + str(pretrained_model) + '_bs_' + str(wandb.config.batch_size) + '_lr_' + str(wandb.config.learning_rate)
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(

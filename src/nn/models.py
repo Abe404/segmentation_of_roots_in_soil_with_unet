@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import torch.nn as nn
 import torch
 from torchvision import models
+from mask2former import get_mask2former_model
 
 
 pretrained_weights = {
@@ -237,6 +238,8 @@ class TorchvisionShim(torch.nn.Module):
 def get_model(name, pretrained_model, pretrained_backbone):
     if name == "unet":
         return UNetGN()
+    elif name == 'mask2former':
+        return get_mask2former_model(pretrained_model)
     else:
         if pretrained_backbone:
             weights_backbone = \
