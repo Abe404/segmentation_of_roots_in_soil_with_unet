@@ -104,7 +104,7 @@ def evaluate(cnn, loader, device):
     return loss, np.concatenate(all_preds), all_true
 
 
-def train(cnn, outdir, learning_rate, epochs, batch_size, schedule):
+def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay):
     # Initialize W&B
 
     train_loader, val_loader = get_data_loaders(batch_size)
@@ -112,7 +112,7 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule):
     # To use multiple GPUs
     # cnn = torch.nn.DataParallel(cnn, device_ids=[0, 1])
 
-    optimizer = torch.optim.AdamW(cnn.parameters(), lr=learning_rate)
+    optimizer = torch.optim.AdamW(cnn.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     if schedule:
         scheduler = MultiStepLR(optimizer, milestones=[30, 60, 90], gamma=0.3)
@@ -210,6 +210,7 @@ if __name__ == '__main__':
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size
         schedule = wandb.config.schedule
+        weight_decay = wandb.config.weight_decay
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
@@ -219,6 +220,7 @@ if __name__ == '__main__':
                         '_bs_' + str(wandb.config.batch_size) + 
                         '_lr_' + str(wandb.config.learning_rate) + 
                         '_schedule_' + str(schedule) + 
+                        '_decay_' + str(weight_decay) + 
                         '_rep_' + str(wandb.config.repeats))
     else:
         # Standalone mode, use command line arguments
@@ -252,5 +254,5 @@ if __name__ == '__main__':
     # Now use the model and arguments
     train(
         get_model(model, pretrained_model, pretrained_backbone),
-        outdir, learning_rate, epochs, batch_size, schedule
+        outdir, learning_rate, epochs, batch_size, schedule, weight_decay
     )

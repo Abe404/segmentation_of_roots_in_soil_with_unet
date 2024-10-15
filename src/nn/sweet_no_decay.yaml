@@ -8,11 +8,15 @@ parameters:
   learning_rate:
     value: 0.001
   schedule:
-    value: False
+    value: True
+  weight_decay:
+    value: 0.0
   epochs:
     value: 80  # Fixed number of epochs
   batch_size:
     value: 4
+  repeats:
+    values: [1, 2]
 
 command:
   - python3.10
