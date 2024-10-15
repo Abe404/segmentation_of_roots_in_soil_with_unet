@@ -1,4 +1,4 @@
-name: "sweep_no_schedule"
+name: "sweep_no_decay"
 method: grid
 parameters:
   model:
