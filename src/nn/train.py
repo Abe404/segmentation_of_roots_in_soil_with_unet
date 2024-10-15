@@ -214,11 +214,11 @@ if __name__ == '__main__':
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
 
-        wandb.run.name = str(wandb.config.model) + 
+        wandb.run.name = (str(wandb.config.model) + 
                         '_pre_' + str(pretrained_model) + 
                         '_bs_' + str(wandb.config.batch_size) + 
                         '_lr_' + str(wandb.config.learning_rate) + 
-                        '_schedule_' + str(schedule)
+                        '_schedule_' + str(schedule))
     else:
         # Standalone mode, use command line arguments
         parser = argparse.ArgumentParser(

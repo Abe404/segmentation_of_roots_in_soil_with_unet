@@ -7,6 +7,8 @@ parameters:
       - unet
   learning_rate:
     value: 0.001
+  schedule:
+    value: False
   epochs:
     value: 80  # Fixed number of epochs
   batch_size:
