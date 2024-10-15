@@ -199,7 +199,7 @@ if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
     if wandb.run is not None:
-        wandb.run.name = 'batch_sweep_' + str(wandb.config.model) + '_bs_' + str(wandb.config.batch_size) + '_lr_' + str(wandb.config.learning_rate)
+        wandb.run.name = str(wandb.config.model) + '_pre_' + str(wandb.config.pretrained_model) + '_bs_' + str(wandb.config.batch_size) + '_lr_' + str(wandb.config.learning_rate) + '_rep_' + str(wandb.config.repeats)
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         learning_rate = wandb.config.learning_rate

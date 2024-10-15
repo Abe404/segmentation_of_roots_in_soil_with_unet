@@ -10,5 +10,5 @@ parameters:
 
 
 command:
-  - python3.10
+  - python3
   - unet/train.py
