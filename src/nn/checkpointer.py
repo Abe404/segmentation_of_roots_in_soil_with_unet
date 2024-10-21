@@ -54,12 +54,13 @@ def delete_old_checkpoints(checkpoint_dir):
         delete_all_except(checkpoint_dir, [])
 
 
+
+
 class CheckPointer:
 
     def __init__(self, outdir, evaluation_metric, mode, batch_size,
                  train_data_size) -> None:
         self.checkpoint_dir = os.path.join(outdir, 'checkpoints')
-        # presuming checkpointer is created at start of training
         self.train_start = time.time()
         if not os.path.exists(self.checkpoint_dir):
             print('Creating', self.checkpoint_dir)
@@ -77,6 +78,13 @@ class CheckPointer:
         else:
             self.best_val = 0
 
+        # Track best model path and epoch to overwrite
+        self.best_model_path = os.path.join(self.checkpoint_dir, "best_model.pth")
+        self.best_epoch = 0
+
+        # Create a W&B artifact once and update it during the run
+        self.artifact = wandb.Artifact('best_model', type='model')
+
     def maybe_save(self, cnn, metrics, epoch) -> None:
         val = metrics[self.evaluation_metric]
 
@@ -87,26 +95,23 @@ class CheckPointer:
             improvement = (val > self.best_val)
 
         if improvement:
-            print("\nValidation "
-                  f"{self.evaluation_metric}"
-                  f" improved from {self.best_val:.5f} to {val:.5f}")
-            self.save_checkpoint(cnn, metrics, epoch)
+            print(f"\nValidation {self.evaluation_metric} improved from {self.best_val:.5f} to {val:.5f}")
+            self.best_epoch = epoch  # Track the best epoch
             self.best_val = val
+            self.save_checkpoint(cnn, metrics, epoch)
 
         else:
-            print("Not saving checkpoint as validation "
-                  f"{self.evaluation_metric} did not improve")
+            print(f"Not saving checkpoint as validation {self.evaluation_metric} did not improve")
 
     def save_checkpoint(self, cnn, val_metrics, epoch: int) -> None:
-        """ Saves the pickle checkpoint as well as
-            a text file with summary of current model performance
+        """ Overwrite the best model checkpoint and update W&B artifact.
         """
-        delete_old_checkpoints(self.checkpoint_dir)
-        checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_{epoch}.pkl")
-        print(f"Saving checkpoint to {checkpoint_path}")
-        torch.save(cnn.state_dict(), checkpoint_path)
+        print(f"Overwriting best model checkpoint at {self.best_model_path} (Epoch: {epoch})")
+        torch.save(cnn.state_dict(), self.best_model_path)
 
-        with open(checkpoint_path.replace('pkl', "txt"), "w") as text_file:
+        # Create a text file with the details of the best model
+        text_file_path = self.best_model_path.replace('pth', "txt")
+        with open(text_file_path, "w") as text_file:
             now = datetime.datetime.now()
             train_duration = time.time() - self.train_start
             print(f"Date: {now}", file=text_file)
@@ -116,3 +121,8 @@ class CheckPointer:
             print(f"Train Duration: {train_duration:.1f} seconds", file=text_file)
             for name, val in val_metrics.items():
                 print(f"Validation {name}: {val}", file=text_file)
+
+        # Overwrite the existing W&B artifact
+        self.artifact.add_file(self.best_model_path)  # Log model
+        self.artifact.add_file(text_file_path)        # Log text file with epoch info
+        wandb.log_artifact(self.artifact, aliases=['best_model'])
