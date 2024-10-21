@@ -100,7 +100,7 @@ class CheckPointer:
             print(f"Not saving checkpoint as validation {self.evaluation_metric} did not improve")
 
     def save_checkpoint(self, cnn, val_metrics, epoch: int) -> None:
-        """ Overwrite the best model checkpoint and log it as a new W&B artifact.
+        """ Overwrite the best model checkpoint and log it as a W&B artifact.
         """
         print(f"Overwriting best model checkpoint at {self.best_model_path} (Epoch: {epoch})")
         torch.save(cnn.state_dict(), self.best_model_path)
@@ -118,9 +118,21 @@ class CheckPointer:
             for name, val in val_metrics.items():
                 print(f"Validation {name}: {val}", file=text_file)
 
-        # Create a new W&B artifact for the best model
+        # Log the new artifact and delete old versions
         artifact = wandb.Artifact('best_model', type='model')
         artifact.add_file(self.best_model_path)  # Log model
         artifact.add_file(text_file_path)        # Log text file with epoch info
-        wandb.log_artifact(artifact)
+        wandb.log_artifact(artifact, aliases=['best_model'])
 
+        # After logging the artifact, delete old versions
+        self.delete_old_artifacts()
+
+    def delete_old_artifacts(self):
+        """ Delete old artifact versions to free up space, keeping only the latest one. """
+        api = wandb.Api()
+        artifact_versions = api.artifact_versions('model', 'your_project_name/best_model')
+
+        # Keep only the latest version (the most recent one)
+        for artifact in artifact_versions[:-1]:
+            print(f"Deleting old artifact: {artifact.name}")
+            artifact.delete()  # This will delete the old versions
