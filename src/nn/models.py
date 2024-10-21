@@ -238,8 +238,30 @@ class TorchvisionShim(torch.nn.Module):
 def get_model(name, pretrained_model, pretrained_backbone):
     if name == "unet":
         return UNetGN()
+    
+    # U-Net++ with two classes (foreground and background)
+    elif name == "unet++":
+        return smp.UnetPlusPlus(
+            encoder_name="resnet34",      # You can experiment with different encoders
+            encoder_weights="imagenet" if pretrained_backbone else None,
+            in_channels=3,                # Set this according to your input data
+            classes=2,                    # Two output channels (foreground and background)
+            activation=None               # No activation; the loss function handles it
+        )
+    
+    # DeepLabV3+ with two classes (foreground and background)
+    elif name == "deeplabv3+":
+        return smp.DeepLabV3Plus(
+            encoder_name="resnet34",      # You can change the encoder if needed
+            encoder_weights="imagenet" if pretrained_backbone else None,
+            in_channels=3,                # Set this according to your input data
+            classes=2,                    # Two output channels
+            activation=None               # No activation here
+        )
+
     elif name == 'mask2former':
         return get_mask2former_model(pretrained_model)
+
     else:
         if pretrained_backbone:
             weights_backbone = \
