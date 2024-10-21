@@ -22,6 +22,7 @@ import os
 import sys
 import glob
 import torch
+import wandb
 
 # pylint: disable=C0413
 sys.path.append('.')
