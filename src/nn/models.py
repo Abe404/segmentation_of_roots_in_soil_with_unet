@@ -259,8 +259,8 @@ class SMPShim(torch.nn.Module):
         out = self.model(x_padded)
 
         # Crop the output back to 388x388
-        out = out[:, :, :388, :388]  # Adjust as needed for your task
-        return out
+        return crop_tensor(out, (None, None, 388, 388))
+
 
 def get_model(name, pretrained_model, pretrained_backbone):
     if name == "unet":
