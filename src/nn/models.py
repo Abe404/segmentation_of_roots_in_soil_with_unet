@@ -27,6 +27,7 @@ import torch
 from torchvision import models
 from mask2former import get_mask2former_model
 
+import segmentation_models_pytorch as smp
 
 pretrained_weights = {
     "deeplabv3_mobilenet_v3_large":
