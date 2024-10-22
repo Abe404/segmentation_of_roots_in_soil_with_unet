@@ -7,7 +7,8 @@ parameters:
       - deeplabv3+  # DeepLabV3+
       - manet       # MAnet
       - pan         # PAN
-      - upernet     # UPerNet
+      - linknet     # Linknet
+      - pspnet      # PSPNet
   encoder_name:
     values:
       - resnest50d_4s2x40d   # ResNeSt
