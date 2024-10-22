@@ -21,11 +21,11 @@ parameters:
   schedule:
     value: True
   weight_decay:
-    value: 0.01   # Default weight decay set to 0.01
+    value: 0.0   # Default weight decay set to 0.01
   epochs:
     value: 80  # Fixed number of epochs
   batch_size:
-    value: 4
+    value: 8
   repeats:
     values: [1, 2]
 
