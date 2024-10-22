@@ -11,13 +11,11 @@ parameters:
       - pspnet      # PSPNet
   encoder_name:
     values:
-      - resnest50d_4s2x40d   # ResNeSt
-      - res2net50_26w_4s     # Res2Net
-      - densenet121          # DenseNet
-      - resnet34             # ResNet34 (default for comparison)
+      - resnet34             # ResNet34
+      - densenet121          # DenseNet121
       - inceptionresnetv2    # InceptionResNetV2
+      - se_resnext50_32x4d   # SE-ResNeXt
       - mit_b5               # Mix Vision Transformer B5
-      - sk_resnext50_32x4d   # SK-ResNeXt
   pretrained_backbone:
     values: [True, False]    # Test with and without pretrained backbones
   learning_rate:
