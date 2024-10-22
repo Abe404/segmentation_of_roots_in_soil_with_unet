@@ -14,6 +14,9 @@ parameters:
       - res2net50_26w_4s     # Res2Net
       - densenet121          # DenseNet
       - resnet34             # ResNet34 (default for comparison)
+      - inceptionresnetv2    # InceptionResNetV2
+      - mit_b5               # Mix Vision Transformer B5
+      - sk_resnext50_32x4d   # SK-ResNeXt
   pretrained_backbone:
     values: [True, False]    # Test with and without pretrained backbones
   learning_rate:
