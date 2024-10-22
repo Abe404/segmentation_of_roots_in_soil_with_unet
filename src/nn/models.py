@@ -265,7 +265,6 @@ class SMPShim(torch.nn.Module):
 def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbone=False):
 
     def create_smp_model(model_cls):
-
         model = model_cls(
             encoder_name=encoder_name,          # Flexible encoder name
             encoder_weights="imagenet" if pretrained_backbone else None,
@@ -281,7 +280,8 @@ def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbo
         "deeplabv3+": smp.DeepLabV3Plus,
         "manet": smp.MAnet,
         "pan": smp.PAN,
-        "upernet": smp.UPerNet
+        "linknet": smp.Linknet,         # Add Linknet
+        "pspnet": smp.PSPNet            # Add PSPNet
     }
 
     if name in model_mapping:
@@ -294,10 +294,9 @@ def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbo
         return get_mask2former_model(pretrained_model)
 
     else:
-        # pytorch models
+        # PyTorch models
         if pretrained_backbone:
-            weights_backbone = \
-                pretrained_weights[name.split("_", maxsplit=1)[1]]
+            weights_backbone = pretrained_weights[name.split("_", maxsplit=1)[1]]
         else:
             weights_backbone = None
 
