@@ -200,12 +200,15 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
     # Finish the W&B run
     wandb.finish()
 
+
+
 if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
     if wandb.run is not None:
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
+        encoder_name = wandb.config.encoder_name  # Load encoder name from Wandb config
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size
@@ -215,12 +218,15 @@ if __name__ == '__main__':
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
 
+        # Add encoder_name to WandB run name for filtering during analysis
         wandb.run.name = (str(wandb.config.model) + 
+                        '_enc_' + str(encoder_name) +            # Add encoder_name to run name
                         '_pre_' + str(pretrained_model) + 
                         '_bs_' + str(wandb.config.batch_size) + 
                         '_lr_' + str(wandb.config.learning_rate) + 
                         '_schedule_' + str(schedule) + 
                         '_decay_' + str(weight_decay) + 
+                        '_backbone_' + str(pretrained_backbone) + 
                         '_rep_' + str(wandb.config.repeats))
     else:
         # Standalone mode, use command line arguments
@@ -237,6 +243,7 @@ if __name__ == '__main__':
         parser.add_argument("-e", "--epochs", type=int, default=80)
         parser.add_argument("-B", "--pretrained-backbone", action="store_true")
         parser.add_argument("-M", "--pretrained-model", action="store_true")
+        parser.add_argument("-E", "--encoder-name", type=str, default="resnet34")  # Add encoder argument
         args = parser.parse_args()
 
         # Set output directory if not provided
@@ -245,6 +252,7 @@ if __name__ == '__main__':
 
         # Map arguments to variables for consistency
         model = args.model
+        encoder_name = args.encoder_name  # Capture encoder name
         learning_rate = args.learning_rate
         epochs = args.epochs
         pretrained_backbone = args.pretrained_backbone
@@ -253,6 +261,7 @@ if __name__ == '__main__':
 
     # Now use the model and arguments
     train(
-        get_model(model, pretrained_model, pretrained_backbone),
+        get_model(model, encoder_name, pretrained_model, pretrained_backbone),  # Pass encoder_name to get_model
         outdir, learning_rate, epochs, batch_size, schedule, weight_decay
     )
+

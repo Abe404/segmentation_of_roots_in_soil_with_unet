@@ -262,43 +262,42 @@ class SMPShim(torch.nn.Module):
         return crop_tensor(out, (None, None, 388, 388))
 
 
-def get_model(name, pretrained_model, pretrained_backbone):
-    if name == "unet":
-        return UNetGN()
-    
-   
-    # Add other models like DeepLabV3+ similarly
+def get_model(name, encoder_name="resnet34", pretrained_model=False, pretrained_backbone=False):
 
-def get_model(name, pretrained_model, pretrained_backbone):
-    if name == "unet":
+
+def get_model(name, encoder_name="resnet34", pretrained_model=False, pretrained_backbone=False):
+
+    def create_smp_model(model_cls):
+
+        model = model_cls(
+            encoder_name=encoder_name,          # Flexible encoder name
+            encoder_weights="imagenet" if pretrained_backbone else None,
+            in_channels=3,                      # Set this according to your input data
+            classes=2,                          # Two output channels (foreground and background)
+            activation=None                     # No activation; the loss function handles it
+        )
+        return SMPShim(model)  # Keep the shim for padding
+
+    # Dictionary mapping model names to their corresponding segmentation model classes
+    model_mapping = {
+        "unet++": smp.UnetPlusPlus,
+        "deeplabv3+": smp.DeepLabV3Plus,
+        "manet": smp.MAnet,
+        "pan": smp.PAN,
+        "upernet": smp.UPerNet
+    }
+
+    if name in model_mapping:
+        return create_smp_model(model_mapping[name])
+
+    elif name == "unet":
         return UNetGN()
-    
-    # U-Net++ with padding shim and two classes (foreground and background)
-    elif name == "unet++":
-        model = smp.UnetPlusPlus(
-            encoder_name="resnet34",      # You can experiment with different encoders
-            encoder_weights="imagenet" if pretrained_backbone else None,
-            in_channels=3,                # Set this according to your input data
-            classes=2,                    # Two output channels (foreground and background)
-            activation=None               # No activation; the loss function handles it
-        )
-        return SMPShim(model)
- 
-    # DeepLabV3+ with padding shim and  two classes (foreground and background)
-    elif name == "deeplabv3+":
-        model = smp.DeepLabV3Plus(
-            encoder_name="resnet34",      # You can change the encoder if needed
-            encoder_weights="imagenet" if pretrained_backbone else None,
-            in_channels=3,                # Set this according to your input data
-            classes=2,                    # Two output channels
-            activation=None               # No activation here
-        )
-        return SMPShim(model)
 
     elif name == 'mask2former':
         return get_mask2former_model(pretrained_model)
 
     else:
+        # pytorch models
         if pretrained_backbone:
             weights_backbone = \
                 pretrained_weights[name.split("_", maxsplit=1)[1]]

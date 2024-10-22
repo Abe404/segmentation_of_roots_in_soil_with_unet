@@ -1,0 +1,35 @@
+name: "sweep_new_models_with_encoders"
+method: grid
+parameters:
+  model:
+    values:
+      - unet++      # U-Net++
+      - deeplabv3+  # DeepLabV3+
+      - manet       # MAnet
+      - pan         # PAN
+      - upernet     # UPerNet
+  encoder_name:
+    values:
+      - resnest50d_4s2x40d   # ResNeSt
+      - res2net50_26w_4s     # Res2Net
+      - densenet121          # DenseNet
+      - resnet34             # ResNet34 (default for comparison)
+  pretrained_backbone:
+    values: [True, False]    # Test with and without pretrained backbones
+  learning_rate:
+    value: 0.001
+  schedule:
+    value: True
+  weight_decay:
+    value: 0.01   # Default weight decay set to 0.01
+  epochs:
+    value: 80  # Fixed number of epochs
+  batch_size:
+    value: 4
+  repeats:
+    values: [1, 2]
+
+command:
+  - python3.10
+  - nn/train.py
+
