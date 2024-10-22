@@ -262,10 +262,7 @@ class SMPShim(torch.nn.Module):
         return crop_tensor(out, (None, None, 388, 388))
 
 
-def get_model(name, encoder_name="resnet34", pretrained_model=False, pretrained_backbone=False):
-
-
-def get_model(name, encoder_name="resnet34", pretrained_model=False, pretrained_backbone=False):
+def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbone=False):
 
     def create_smp_model(model_cls):
 
