@@ -26,6 +26,7 @@ import torch.nn as nn
 import torch
 from torchvision import models
 from mask2former import get_mask2former_model
+from root_painter_unet import UNetGNRes
 
 
 import torch.nn.functional as F
@@ -289,6 +290,9 @@ def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbo
 
     elif name == "unet":
         return UNetGN()
+
+    elif name == 'root_painter_unet':
+        return UNetGNRes()
 
     elif name == 'mask2former':
         return get_mask2former_model(pretrained_model)

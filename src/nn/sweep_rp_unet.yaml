@@ -1,0 +1,25 @@
+name: "sweep_rp_unet"
+method: grid
+parameters:
+  model:
+    values:
+      - root_painter_unet
+  pretrained_backbone:
+    values: [False]    # Test with and without pretrained backbones
+  learning_rate:
+    value: 0.001
+  schedule:
+    value: False
+  weight_decay:
+    value: 0.0   # Default weight decay set to 0.01
+  epochs:
+    value: 80  # Fixed number of epochs
+  batch_size:
+    value: 4
+  repeats:
+    values: [1, 2, 3, 4, 5]
+
+command:
+  - python3.10
+  - nn/train.py
+
