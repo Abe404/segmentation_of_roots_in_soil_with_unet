@@ -27,7 +27,7 @@ parameters:
   epochs:
     value: 80  # Fixed number of epochs
   batch_size:
-    value: 8
+    value: 4
   repeats:
     values: [1, 2]
 
