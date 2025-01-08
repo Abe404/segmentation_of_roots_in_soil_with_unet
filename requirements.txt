@@ -9,3 +9,4 @@ tensorboard_logger
 torch==2.4.1
 torchvision==0.19.1
 segmentation-models-pytorch==0.3.4
+transformers==4.47.1

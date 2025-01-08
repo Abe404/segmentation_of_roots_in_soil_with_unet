@@ -208,7 +208,7 @@ if __name__ == '__main__':
     if wandb.run is not None:
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
-        encoder_name = wandb.config.encoder_name  # Load encoder name from Wandb config
+        encoder_name = wandb.config.get('encoder_name', None)  # Load encoder name from Wandb config
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size

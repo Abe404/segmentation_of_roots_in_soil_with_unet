@@ -292,7 +292,7 @@ def get_model(name, encoder_name=None, pretrained_model=False, pretrained_backbo
         return UNetGN()
 
     elif name == 'root_painter_unet':
-        return UNetGNRes()
+        return SMPShim(UNetGNRes())
 
     elif name == 'mask2former':
         return get_mask2former_model(pretrained_model)
