@@ -144,6 +144,11 @@ class UNetGNRes(nn.Module):
         return out
 
 
+def new(name, encoder_name, pretrained_model, pretrained_backbone):
+    assert not pretrained_model and not pretrained_backbone
+    return UNetGNRes()
+
+
 if __name__ == '__main__':
     import torch
     from torch.nn.functional import softmax
@@ -168,15 +173,3 @@ if __name__ == '__main__':
     if im.mode != 'RGB':
         im = im.convert('RGB')
     im.save('out.png')
-
-       
-
-
-
-
-
-
-
-
-
-
