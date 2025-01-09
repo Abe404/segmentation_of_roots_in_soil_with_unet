@@ -249,8 +249,20 @@ if __name__ == '__main__':
         if args.outdir is None:
             args.outdir = f"../output/{args.model}/train_output"
 
-    train(
-        get_model(args.model, args.encoder_name, args.pretrained_model, args.pretrained_backbone),
-        args.outdir, args.learning_rate, args.epochs, args.batch_size, args.schedule, args.weight_decay
-    )
+        # Map arguments to variables for consistency
+        model = args.model
+        encoder_name = args.encoder_name  # Capture encoder name
+        learning_rate = args.learning_rate
+        epochs = args.epochs
+        schedule = args.schedule
+        weight_decay = args.weight_decay
+        batch_size = args.batch_size
+        pretrained_backbone = args.pretrained_backbone
+        pretrained_model = args.pretrained_model
+        outdir = args.outdir
 
+    # Now use the model and arguments
+    train(
+        get_model(model, encoder_name, pretrained_model, pretrained_backbone),  # Pass encoder_name to get_model
+        outdir, learning_rate, epochs, batch_size, schedule, weight_decay
+    )
