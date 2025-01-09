@@ -46,12 +46,6 @@ def new(name, encoder_name, pretrained_model, pretrained_backbone):
     pt_name = f"facebook/mask2former-{encoder_name}"
 
     config = Mask2FormerConfig.from_pretrained(pt_name, num_labels=1)
-    # Reduce stride to preserve resolution
-    config.encoder_stride = 1
-    # Reduce patch size to keep the resolution high
-    config.backbone_config.patch_size = 1
-    # Adjust window size to control feature aggregation
-    config.backbone_config.window_size = 2
 
     if pretrained_model:
         # TODO: doesn't work with the custom resolution-preserving config
