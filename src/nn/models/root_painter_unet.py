@@ -25,6 +25,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import torch.nn as nn
 from PIL import Image
 
+models = ["rp_unet"]
+
 
 def get_valid_patch_sizes():
     return list((572 - (16*i) for i in range(31)))
