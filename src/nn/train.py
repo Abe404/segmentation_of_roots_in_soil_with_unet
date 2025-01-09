@@ -205,7 +205,7 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
 if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
-    if wandb.run is not None:
+    if wandb.run.settings.run_mode == "online-run":
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         encoder_name = wandb.config.get('encoder_name', None)  # Load encoder name from Wandb config
@@ -233,17 +233,16 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(
             description="Train a deep model for image segmentation"
         )
-        parser.add_argument(
-            "-m", "--model", choices=(
-                "unet", "deeplabv3_mobilenet_v3_large", "deeplabv3_resnet101",
-                "deeplabv3_resnet50", "fcn_resnet101", "fcn_resnet50",
-                "lraspp_mobilenet_v3_large"))
+        parser.add_argument("-m", "--model", required=True)
         parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
+        parser.add_argument("-b", "--batch-size", type=int, default=4)
         parser.add_argument("-o", "--outdir")
         parser.add_argument("-e", "--epochs", type=int, default=80)
         parser.add_argument("-B", "--pretrained-backbone", action="store_true")
         parser.add_argument("-M", "--pretrained-model", action="store_true")
         parser.add_argument("-E", "--encoder-name", type=str, default="resnet34")  # Add encoder argument
+        parser.add_argument("-S", "--schedule", action="store_true")
+        parser.add_argument("-W", "--weight-decay", action="store_false")
         args = parser.parse_args()
 
         # Set output directory if not provided
@@ -262,6 +261,6 @@ if __name__ == '__main__':
     # Now use the model and arguments
     train(
         get_model(model, encoder_name, pretrained_model, pretrained_backbone),  # Pass encoder_name to get_model
-        outdir, learning_rate, epochs, batch_size, schedule, weight_decay
+        outdir, args.learning_rate, args.epochs, args.batch_size, args.schedule, args.weight_decay
     )
 
