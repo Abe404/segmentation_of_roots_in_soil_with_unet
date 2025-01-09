@@ -26,16 +26,18 @@ import torch.nn as nn
 import torch
 import models.mask2former
 import models.root_painter_unet
+import models.sam
 import models.segmentation_pytorch
 import models.torchvision_models
 import models.unet
 
 import torch.nn.functional as F
 
+
 model_map = {
     model_name: module
     for module in (
-        torchvision_models, segmentation_pytorch, mask2former, root_painter_unet, unet
+        torchvision_models, segmentation_pytorch, mask2former, root_painter_unet, sam, unet
     )
     for model_name in module.models
 }

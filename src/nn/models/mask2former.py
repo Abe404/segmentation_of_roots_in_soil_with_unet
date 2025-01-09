@@ -1,6 +1,8 @@
 import torch
 from transformers import Mask2FormerForUniversalSegmentation, Mask2FormerConfig
 
+from nn.im_utils import crop_to_388x388
+
 models = ["mask2former"]
 
 
@@ -14,15 +16,8 @@ class ModelShim(torch.nn.Module):
     def forward(self, *args, **kwargs):
         outputs = self.model(*args, **kwargs)
         masks = outputs.masks_queries_logits
-        cropped_masks = self.crop_to_388x388(self.upsample(masks))
+        cropped_masks = crop_to_388x388(self.upsample(masks))
         return cropped_masks
-
-    def crop_to_388x388(self, tensor):
-        """Crop the tensor to the central 388x388 region."""
-        _, _, h, w = tensor.shape
-        start_h = (h - 388) // 2
-        start_w = (w - 388) // 2
-        return tensor[:, :, start_h:start_h + 388, start_w:start_w + 388]
 
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):
@@ -47,5 +42,4 @@ def new(name, encoder_name, pretrained_model, pretrained_backbone):
         )
     else:
         model = Mask2FormerForUniversalSegmentation(config)
-
     return ModelShim(model)

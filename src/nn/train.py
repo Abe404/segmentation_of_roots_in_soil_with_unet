@@ -47,8 +47,8 @@ def get_data_loaders(batch_size):
     """
     files = get_files_split()
     val_photos, train_photos, val_annotations, train_annotations = files
-    train_set = UNetTrainDataset(train_annotations, train_photos)
-    val_set = UNetValDataset(val_annotations, val_photos)
+    train_set = UNetTrainDataset(train_annotations[:2], train_photos[:2])
+    val_set = UNetValDataset(val_annotations[:2], val_photos[:2])
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
                               num_workers=8, drop_last=True, pin_memory=True)
     val_loader = DataLoader(val_set, batch_size=8, drop_last=False,
