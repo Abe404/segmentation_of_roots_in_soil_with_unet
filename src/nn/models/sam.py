@@ -4,7 +4,7 @@ import transformers
 
 from nn.im_utils import crop_to_388x388
 
-models = ["sam", "sam2", "sam2.1"]
+models = ["sam"]
 
 
 class ModelShim(torch.nn.Module):
@@ -35,27 +35,11 @@ def new(name, encoder_name, pretrained_model, pretrained_backbone):
     assert (not pretrained_model and not pretrained_backbone) \
         or (pretrained_model and pretrained_backbone)
 
-    if name == "sam":
-        assert encoder_name in {"vit-base", "vit-huge"}
-    else:
-        assert encoder_name in {
-            "hiera-tiny",
-            "hiera-small",
-            "hiera-base_plus",
-            "hiera-large",
-        }
+    assert encoder_name in {"vit-base", "vit-huge"}
     pt_name = f"facebook/{name}-{encoder_name}"
     config = transformers.AutoConfig.from_pretrained(pt_name, num_labels=1)
     if pretrained_model:
-        if name == "sam":
-            model = transformers.SamModel.from_pretrained(pt_name)
-        else:
-            # TODO
-            import ipdb; ipdb.set_trace()
+        model = transformers.SamModel.from_pretrained(pt_name)
     else:
-        if name == "sam":
-            model = transformers.SamModel(config)
-        else:
-            # TODO
-            import ipdb; ipdb.set_trace()
+        model = transformers.SamModel(config)
     return ModelShim(model)

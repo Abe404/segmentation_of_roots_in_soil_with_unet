@@ -19,6 +19,9 @@ import time
 import os
 from multiprocessing import Pool
 
+import torch
+
+
 def multi_process(func, repeat_args, fnames, cpus=os.cpu_count()):
     """
     Use multiprocess pool to exec func.
@@ -41,3 +44,13 @@ def multi_process(func, repeat_args, fnames, cpus=os.cpu_count()):
 
     print(func.__name__, 'on', len(fnames), 'images took', time.time() - start)
     return results
+
+
+def get_device():
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    return device
