@@ -30,7 +30,7 @@ import wandb  # Import W&B
 from datasets import UNetTrainDataset
 from datasets import UNetValDataset
 from checkpointer import CheckPointer
-from models import get_model
+from models import model_map, get_model
 from log import Logger
 from loss import combined_loss
 # pylint: disable=C0413
@@ -233,14 +233,14 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(
             description="Train a deep model for image segmentation"
         )
-        parser.add_argument("-m", "--model", required=True)
+        parser.add_argument("-m", "--model", choices=sorted(model_map.keys()), required=True)
         parser.add_argument("-a", "--learning-rate", type=float, default=1e-2)
         parser.add_argument("-b", "--batch-size", type=int, default=4)
         parser.add_argument("-o", "--outdir")
         parser.add_argument("-e", "--epochs", type=int, default=80)
+        parser.add_argument("-E", "--encoder-name", type=str, default="resnet50")
         parser.add_argument("-B", "--pretrained-backbone", action="store_true")
         parser.add_argument("-M", "--pretrained-model", action="store_true")
-        parser.add_argument("-E", "--encoder-name", type=str, default="resnet34")  # Add encoder argument
         parser.add_argument("-S", "--schedule", action="store_true")
         parser.add_argument("-W", "--weight-decay", action="store_false")
         args = parser.parse_args()
