@@ -157,3 +157,15 @@ def get_tiles_and_masks_with_roots(tiles, masks):
             masks_to_keep.append(mask)
             tiles_to_keep.append(tile)
     return tiles_to_keep, masks_to_keep
+
+
+def crop_tensor(tensor, target):
+    """ Crop tensor to target size """
+    _, _, tensor_height, tensor_width = tensor.size()
+    _, _, crop_height, crop_width = target
+    left = (tensor_width - crop_height) // 2
+    top = (tensor_height - crop_width) // 2
+    right = left + crop_width
+    bottom = top + crop_height
+    cropped_tensor = tensor[:, :, top: bottom, left: right]
+    return cropped_tensor
