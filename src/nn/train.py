@@ -201,15 +201,15 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
 if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
-    if wandb.run.settings.run_mode == "online-run":
+    if wandb.run is not None:
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         encoder_name = wandb.config.get('encoder_name', None)  # Load encoder name from Wandb config
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size
-        schedule = wandb.config.schedule
-        weight_decay = wandb.config.weight_decay
+        schedule = wandb.config.get('schedule', False)
+        weight_decay = wandb.config.get('weight_decay', 0.0)
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
@@ -245,8 +245,20 @@ if __name__ == '__main__':
         if args.outdir is None:
             args.outdir = f"../output/{args.model}/train_output"
 
-    train(
-        get_model(args.model, args.encoder_name, args.pretrained_model, args.pretrained_backbone),
-        args.outdir, args.learning_rate, args.epochs, args.batch_size, args.schedule, args.weight_decay
-    )
+        # Map arguments to variables for consistency
+        model = args.model
+        encoder_name = args.encoder_name  # Capture encoder name
+        learning_rate = args.learning_rate
+        epochs = args.epochs
+        schedule = args.schedule
+        weight_decay = args.weight_decay
+        batch_size = args.batch_size
+        pretrained_backbone = args.pretrained_backbone
+        pretrained_model = args.pretrained_model
+        outdir = args.outdir
 
+    # Now use the model and arguments
+    train(
+        get_model(model, encoder_name, pretrained_model, pretrained_backbone),  # Pass encoder_name to get_model
+        outdir, learning_rate, epochs, batch_size, schedule, weight_decay
+    )
