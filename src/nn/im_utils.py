@@ -169,3 +169,10 @@ def crop_tensor(tensor, target):
     bottom = top + crop_height
     cropped_tensor = tensor[:, :, top: bottom, left: right]
     return cropped_tensor
+
+def crop_to_388x388(tensor):
+    """Crop the tensor to the central 388x388 region."""
+    _, _, h, w = tensor.shape
+    start_h = (h - 388) // 2
+    start_w = (w - 388) // 2
+    return tensor[:, :, start_h:start_h + 388, start_w:start_w + 388]

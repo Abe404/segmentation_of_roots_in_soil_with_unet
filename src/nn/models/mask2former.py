@@ -2,17 +2,19 @@ import torch
 import torch.nn.functional as F
 from transformers import Mask2FormerForUniversalSegmentation, Mask2FormerConfig
 
+from nn.im_utils import crop_to_388x388
+
 models = ["mask2former"]
 
+
 class ModelShim(torch.nn.Module):
-    """Shim for Mask2Former (or other models) to handle the forward pass and crop the output to 388x388."""
-    
     def __init__(self, model):
         super().__init__()
         self.model = model
+        self.upsample = torch.nn.modules.Upsample(
+            scale_factor=4, mode='bilinear')
 
     def forward(self, *args, **kwargs):
-
         # import ipdb; ipdb.set_trace()
         # Get the model output
         outputs = self.model(*args, **kwargs)
@@ -57,10 +59,8 @@ def new(name, encoder_name, pretrained_model, pretrained_backbone):
     config = Mask2FormerConfig.from_pretrained(pt_name, num_labels=1)
 
     if pretrained_model:
-        # TODO: doesn't work with the custom resolution-preserving config
         model = Mask2FormerForUniversalSegmentation.from_pretrained(
-            pt_name,
-            config=config
+            pt_name, config=config
         )
     else:
         model = Mask2FormerForUniversalSegmentation(config)
