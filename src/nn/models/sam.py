@@ -88,8 +88,7 @@ class ModelShim(torch.nn.Module):
         dense_pe = self.model.prompt_encoder.get_dense_pe()
         masks, _ = \
             self.model.mask_decoder(features, dense_pe, *prompt_embed, False)
-        # Repeat cause train loop expects two labels
-        return self.postprocess(masks).repeat(1, 2, 1, 1)
+        return self.postprocess(masks)
 
     def preprocess(self, x: torch.Tensor) -> torch.Tensor:
         # Assumes x is in (-0.5, 0.5)

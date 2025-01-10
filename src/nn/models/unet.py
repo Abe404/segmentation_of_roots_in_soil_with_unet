@@ -126,9 +126,9 @@ class UNetGN(nn.Module):
         self.up4 = UpBlock(128)
         # output is now at 64x388x388
         self.conv_out = nn.Sequential(
-            nn.Conv2d(64, 2, kernel_size=1, padding=0),
+            nn.Conv2d(64, 1, kernel_size=1, padding=0),
             nn.ReLU(),
-            nn.GroupNorm(2, 2)
+            nn.GroupNorm(1, 1)
         )
         # output is now at 2x388x388
         # each layer in the output represents a class 'probability'

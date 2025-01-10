@@ -2,6 +2,8 @@ import torch
 import torchvision.models as tv_models
 import torchvision.models.segmentation as seg_models
 
+from im_utils import crop_to_388x388
+
 
 models = [
     "deeplabv3",
@@ -41,14 +43,14 @@ class ModelShim(torch.nn.Module):
         self.model = model
         clfcls = model.classifier.__class__
         if clfcls.__name__ == 'LRASPPHead':
-            self.model.classifier = clfcls(40, 960, 2, 128)
+            self.model.classifier = clfcls(40, 960, 1, 128)
         else:
             in_channels = next(model.classifier.parameters()).size(1)
-            self.model.classifier = clfcls(in_channels, 2)
+            self.model.classifier = clfcls(in_channels, 1)
 
     def forward(self, *args, **kwargs):
         out = self.model.forward(*args, **kwargs)["out"]
-        return crop_tensor(out, (None, None, 388, 388))
+        return crop_to_388x388(out)
 
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):

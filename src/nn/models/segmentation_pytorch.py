@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import segmentation_models_pytorch as smp
 
-from nn.im_utils import crop_tensor
+from nn.im_utils import crop_to_388x388
 
 
 model_mapping = {
@@ -34,19 +34,16 @@ class ModelShim(torch.nn.Module):
 
         x_padded = F.pad(x, (0, pad_width, 0, pad_height))
 
-        # Forward pass through the model
         out = self.model(x_padded)
-
-        # Crop the output back to 388x388
-        return crop_tensor(out, (None, None, 388, 388))
+        return crop_to_388x388(out)
 
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):
     model_cls = model_mapping[name]
-    return model_cls(
+    return ModelShim(model_cls(
         encoder_name=encoder_name,
         encoder_weights="imagenet" if pretrained_backbone else None,
         in_channels=3,
         classes=1,
         activation=None
-    )
+    ))
