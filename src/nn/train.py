@@ -205,15 +205,15 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
 if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
-    if wandb.run.settings.run_mode == "online-run":
+    if wandb.run is not None:
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         encoder_name = wandb.config.get('encoder_name', None)  # Load encoder name from Wandb config
         learning_rate = wandb.config.learning_rate
         epochs = wandb.config.epochs
         batch_size = wandb.config.batch_size
-        schedule = wandb.config.schedule
-        weight_decay = wandb.config.weight_decay
+        schedule = wandb.config.get('schedule', False)
+        weight_decay = wandb.config.get('weight_decay', 0.0)
         pretrained_backbone = wandb.config.get("pretrained_backbone", False)
         pretrained_model = wandb.config.get("pretrained_model", False)
         outdir = wandb.config.get("outdir", f"../output/{model}/train_output")
