@@ -37,6 +37,7 @@ from loss import combined_loss
 sys.path.append('.')
 from metrics import get_metrics, get_metrics_str
 from data_utils import get_files_split
+from sys_utils import get_device
 
 
 def get_data_loaders(batch_size):
@@ -122,12 +123,7 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
                                 train_loader.batch_size,
                                 len(train_loader.dataset))
     logger = Logger(outdir)
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
+    device = get_device()
     cnn.to(device)
     global_step = 0
 
