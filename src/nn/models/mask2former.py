@@ -17,7 +17,7 @@ class ModelShim(torch.nn.Module):
         logits = self.model(*args, **kwargs).masks_queries_logits
         input_shape = args[0].shape[-2:]
         logits = F.interpolate(logits, size=input_shape, mode="bilinear")
-        return crop_to_388x388(logits)
+        return crop_to_388x388(logits[:, :1])
 
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):
@@ -40,9 +40,13 @@ def new(name, encoder_name, pretrained_model, pretrained_backbone):
     if pretrained_model:
         model = Mask2FormerForUniversalSegmentation.from_pretrained(pt_name)
         model.model.transformer_module.queries_embedder = Embedding(
-            1, model.model.transformer_module.queries_embedder.embedding_dim)
+            model.model.transformer_module.queries_embedder.num_embeddings,
+            model.model.transformer_module.queries_embedder.embedding_dim
+        )
         model.model.transformer_module.queries_features = Embedding(
-            1, model.model.transformer_module.queries_features.embedding_dim)
+            model.model.transformer_module.queries_features.num_embeddings,
+            model.model.transformer_module.queries_features.embedding_dim
+        )
     else:
         model = Mask2FormerForUniversalSegmentation(config)
     return ModelShim(model)
