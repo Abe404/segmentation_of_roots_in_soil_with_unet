@@ -108,7 +108,7 @@ class ModelShim(torch.nn.Module):
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):
     assert (not pretrained_model and not pretrained_backbone) \
-        or (pretrained_model and pretrained_backbone)
+        or (pretrained_model and encoder_name)
 
     assert encoder_name in {"vit-base", "vit-huge"}
     pt_name = f"facebook/{name}-{encoder_name}"
