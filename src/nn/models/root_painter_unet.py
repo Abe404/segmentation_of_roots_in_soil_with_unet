@@ -25,6 +25,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import torch.nn as nn
 from PIL import Image
 
+from nn.im_utils import crop_to_388x388
+
 models = ["rp_unet"]
 
 
@@ -125,9 +127,9 @@ class UNetGNRes(nn.Module):
         self.up3 = UpBlock(64)
         self.up4 = UpBlock(64)
         self.conv_out = nn.Sequential(
-            nn.Conv2d(64, 2, kernel_size=1, padding=0),
+            nn.Conv2d(64, 1, kernel_size=1, padding=0),
             nn.ReLU(),
-            nn.GroupNorm(2, 2)
+            nn.GroupNorm(1, 1)
         )
 
     def forward(self, x):
@@ -141,7 +143,7 @@ class UNetGNRes(nn.Module):
         out = self.up3(out, out2)
         out = self.up4(out, out1)
         out = self.conv_out(out)
-        return out
+        return crop_to_388x388(out)
 
 
 def new(name, encoder_name, pretrained_model, pretrained_backbone):

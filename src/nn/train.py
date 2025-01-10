@@ -22,7 +22,7 @@ import sys
 
 import numpy as np
 import torch
-from torch.nn.functional import softmax
+from torch.nn.functional import sigmoid
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
 import wandb  # Import W&B
@@ -50,9 +50,9 @@ def get_data_loaders(batch_size):
     train_set = UNetTrainDataset(train_annotations[:2], train_photos[:2])
     val_set = UNetValDataset(val_annotations[:2], val_photos[:2])
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
-                              num_workers=8, drop_last=True, pin_memory=True)
-    val_loader = DataLoader(val_set, batch_size=8, drop_last=False,
-                            pin_memory=True, shuffle=False, num_workers=8)
+                              num_workers=2, drop_last=True, pin_memory=True)
+    val_loader = DataLoader(val_set, batch_size=2, drop_last=False,
+                            pin_memory=True, shuffle=False, num_workers=2)
 
     return train_loader, val_loader
 
@@ -82,8 +82,7 @@ def evaluate(cnn, loader, device):
 
             # store predictions and ground truth for metrics
             _, predicted = torch.max(outputs.data, 1)
-            softmaxed = softmax(outputs, 1)
-            root_probs = softmaxed[:, 1, :]  # just the root probability.
+            root_probs = sigmoid(outputs).squeeze(1)
 
             # thresholded segmentation
             predicted = (root_probs > 0.5).view(-1).int()
@@ -149,8 +148,7 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
             # -- forward + backward + optimize --
             optimizer.zero_grad()
             outputs = cnn(x_batch) # each output in outputs is 388x388
-            softmaxed = softmax(outputs, 1)
-            root_probs = softmaxed[:, 1, :]  # just the root probability.
+            root_probs = sigmoid(outputs).squeeze(1)
             predicted = root_probs > 0.5
             loss = combined_loss(outputs, y_batch)
             loss.backward()
@@ -205,7 +203,7 @@ def train(cnn, outdir, learning_rate, epochs, batch_size, schedule, weight_decay
 if __name__ == '__main__':
     wandb.init(project="segmentation_of_roots_in_soil_with_unet", entity="abe404-university-of-copenhagen")
 
-    if wandb.run is not None:
+    if wandb.run.settings.mode != "disabled":
         # Wandb is running, load parameters from Wandb config
         model = wandb.config.model
         encoder_name = wandb.config.get('encoder_name', None)  # Load encoder name from Wandb config

@@ -16,6 +16,7 @@ class ModelShim(torch.nn.Module):
     def forward(self, *args, **kwargs):
         outputs = self.model(*(map(self.preprocess, args)), **kwargs)
         masks = outputs.pred_masks.squeeze(1)
+        import ipdb; ipdb.set_trace()
         return self.postprocess(masks)
 
     def preprocess(self, x: torch.Tensor) -> torch.Tensor:
